@@ -356,6 +356,7 @@ const SITD=(dy)=>L=>({px:(L.x+.5)*T,py:L.y*T+(dy||20),pose:'sit',d:'down',over:t
 const F=(n,w,h,k,rooms,o)=>Object.assign({n,w,h,k,rooms},o||{});
 const FT={
   bed:F('ベッド',2,3,'back',['bed'],{use:'side',snap:L=>({px:(L.x+1)*T,py:L.y*T+7,pose:'lie',d:'down',over:true}),draw:dBed}),
+  robovac:F('ロボット掃除機',1,1,'back',['liv','kit','bed'],{use:'front',draw:(X,Y)=>dRoboDock(X,Y)}),
   bed2:F('同居人のベッド',2,3,'free',['bed','liv'],{use:'side',draw:(X,Y,Wd,Dp,L,t)=>dBed(X,Y,Wd,Dp,L,t,1)}),
   tv:F('テレビ',2,1,'back',['liv'],{tall:1,use:'front',draw:dTV}),
   toilet:F('トイレ',1,1,'back',['wc'],{use:'front',snap:L=>({px:(L.x+.5)*T,py:L.y*T+19,pose:'sit',d:'down',over:true}),draw:dToilet}),
@@ -453,7 +454,7 @@ const FT={
   herb:F('ハーブの鉢',1,1,'top',['kit','liv'],{draw:oHerb}),
   terrarium:F('テラリウム',1,1,'top',['liv','bed'],{draw:oTerrarium}),
 };
-const ALLK=Object.keys(FT);
+const ALLK=Object.keys(FT).filter(k=>k!=='bed2');
 const isDeco=k=>FT[k].k==='wall'||FT[k].k==='top';
 
 /* ========== island (outdoor grid) ========== */
@@ -747,7 +748,7 @@ function showTalk(p){const g=GENRE[p.genre]||'番組',t=p.title||'',L=(TVG[p.gen
   for(const[re,a]of TVKW)if(re.test(t+' '+(p.content||'')))L.push(...a,...a);
   if(p.sub)L.push(`今日は「${short(p.sub,22)}」の回なんだって`);if(p.content&&p.content.length>8)L.push(`「${short(p.content,20)}」だって`);
   if(Math.random()<.2)return pick(TVTIME(hourNow()));return typeof vary==='function'?vary(pick(L),null):pick(L);}
-const TVIN=[p=>`いまは${p.ch}で『${short(p.title,26)}』をやってる`,p=>`${p.ch}にしよう。『${short(p.title,26)}』だって`,p=>`お、『${short(p.title,26)}』やってる！`,p=>`チャンネルは${p.ch}。『${short(p.title,24)}』`,p=>`ぽちっ。${p.ch}の『${short(p.title,24)}』だ`,p=>`なにやってるかな…${p.ch}で『${short(p.title,24)}』`];
+const TVIN=[p=>`いまは${p.ch}で『${p.title}』をやってる`,p=>`${p.ch}にしよう。『${p.title}』だって`,p=>`お、『${p.title}』やってる！`,p=>`チャンネルは${p.ch}。『${p.title}』`,p=>`ぽちっ。${p.ch}の『${p.title}』だ`,p=>`なにやってるかな…${p.ch}で『${p.title}』`];
 const RDG={'04':['この曲いいね♪','ふんふーん♪','リズムに乗っちゃう','懐かしい曲だ','知らない曲だけど好きかも','イントロでわかった！','歌詞が心にしみる','ラジオで聴くとまた違うね','つい体が揺れちゃう','リクエスト、送ってみようかな','このアーティスト、気になる','DJさんの曲紹介、いいな'],
  '00':['ふむふむ、そうなんだ','ニュースは聞いておかないとね','耳で聞くニュースもいいね','交通情報、下の街は混んでるのかな','天気予報、聞きのがさないように','落ちついた声で聞きやすい'],
  '01':['実況だけで情景が浮かぶ','いけー！','ラジオの野球中継って味がある','いま何対何？','歓声がすごい'],
@@ -1239,15 +1240,94 @@ const MEAL={morn:['トースト','おにぎり','目玉焼き','納豆ごはん'
  hot:['冷やし中華','そうめん','冷しゃぶ','冷製パスタ','夏野菜カレー','冷や汁','ビビン麺','冷やしたぬきうどん','ざるそば','冷やしトマトと冷奴'],
  spring:['たけのこご飯','春キャベツの回鍋肉','桜えびのかき揚げ','あさりの酒蒸し','菜の花のパスタ'],summer:['うな丼','とうもろこしご飯','夏野菜の揚げびたし','ゴーヤチャンプルー'],
  autumn:['きのこご飯','さんまの塩焼き','栗ご飯','きのこのクリームパスタ','鮭のちゃんちゃん焼き','焼きいも'],winter:['ブリの照り焼き','かぼちゃの煮物','鶏だんご鍋','牡蠣フライ']};
-function meal(){const h=hourNow(),s=season(),sp=S.species,t=tempNow();
-  if(sp==='cloud'&&Math.random()<.15)return'ふわふわパンケーキ';if(sp==='battery'&&Math.random()<.15)return'エネルギーチャージ丼';if(sp==='cassette'&&Math.random()<.12)return'リズムに乗ってたこ焼き';
-  if(h>=5&&h<10)return pick(MEAL.morn);if(h>=10&&h<15)return pick(t>=27?MEAL.lunch.concat(MEAL.hot):MEAL.lunch);
-  let pool=MEAL.dinner.slice();if(t<12)pool=pool.concat(MEAL.cold,MEAL.cold);if(t>=27)pool=pool.concat(MEAL.hot,MEAL.hot);pool=pool.concat(MEAL[s]||[],MEAL[s]||[]);return pick(pool);}
 const COOK=[[/鍋|しゃぶ|おでん|湯豆腐|水炊き/,['土鍋でぐつぐつ…','具材をたっぷり入れて…','いいだしが出てきた']],[/揚|唐揚げ|カツ|天ぷら|天丼|コロッケ|フライ|かき揚げ|春巻き|南蛮/,['油の温度はばっちり','カラッと揚げて…','じゅわ〜っていい音']],
  [/焼き|ステーキ|ソテー|ムニエル|照り焼き|トンテキ|ハンバーグ|餃子/,['じゅうじゅう焼いて…','焼き色がついてきた','ひっくり返して…よし！']],[/炒|チャーハン|焼きそば|回鍋肉|青椒肉絲|八宝菜|チャンプルー|キムチ|ガパオ/,['強火で一気に炒める！','フライパンをふって…','香りが立ってきた']],
  [/パスタ|スパゲッティ|カルボナーラ|ペペロンチーノ|ナポリタン|うどん|そば|ラーメン|そうめん|麺|フォー/,['お湯をわかして麺をゆでて…','ゆで時間、きっちり計ろう','麺がつるつるだ']],[/カレー|シチュー|煮|ストロガノフ|ハヤシ|ポトフ|肉じゃが|大根|筑前煮/,['ことこと煮込んで…','いい匂いがしてきた','味見…うん、いい感じ']],
  [/寿司|ちらし/,['酢飯を作って…','具をきれいに並べて']],[/丼|ご飯|ごはん/,['ごはんにのせて…','炊きたてごはんがいいね']],[/トースト|サンド|パン|ベーグル/,['トースターでこんがり','具をはさんで…']],[/卵|エッグ|目玉|オム/,['卵をふんわり…','黄身がとろっと']]];
 function cookLine(m){for(const[re,a]of COOK)if(re.test(m))return pick(a);return pick(['手際よく作るぞ','レシピどおりに…','いい匂いがしてきた']);}
+/* ===== meals v2 ===== */
+const FOOD={
+ staple:['ごはん','玄米ごはん','雑穀ごはん','五目ごはん','炊き込みごはん','わかめごはん','しそごはん','麦ごはん','バゲット','ロールパン','クロワッサン','ナン','ジャスミンライス','栗ごはん','豆ごはん'],
+ soup:['豆腐とわかめの味噌汁','なめこの味噌汁','豚汁','あさりの味噌汁','コンソメスープ','ミネストローネ','コーンポタージュ','オニオンスープ','中華スープ','わかめスープ','卵スープ','クラムチャウダー','かぼちゃのポタージュ','トムヤムクン','ユッケジャン','参鶏湯','けんちん汁','ボルシチ','ガスパチョ','すまし汁'],
+ side:['グリーンサラダ','ポテトサラダ','シーザーサラダ','コールスロー','トマトサラダ','春雨サラダ','海藻サラダ','冷奴','きんぴらごぼう','ひじきの煮物','ほうれん草のおひたし','小松菜のナムル','もやしのナムル','キムチ','ソムタム','だし巻き玉子','茶碗蒸し','切り干し大根','かぼちゃの煮物','ゴーヤのおかか和え','たこときゅうりの酢の物','マカロニサラダ','ラタトゥイユ','ピクルス','白菜の浅漬け','カプレーゼ','生春巻き'],
+ main:['ハンバーグ','ステーキ','豚の生姜焼き','鶏の唐揚げ','焼き鮭','サバの塩焼き','サバの味噌煮','ぶりの照り焼き','鶏の照り焼き','チキン南蛮','とんかつ','ヒレカツ','エビフライ','アジフライ','カキフライ','コロッケ','メンチカツ','天ぷら盛り合わせ','肉じゃが','筑前煮','ぶり大根','すき焼き','焼き餃子','水餃子','麻婆豆腐','麻婆なす','酢豚','エビチリ','エビマヨ','回鍋肉','青椒肉絲','八宝菜','春巻き','油淋鶏','棒棒鶏','よだれ鶏','ロールキャベツ','ビーフストロガノフ','鶏むね肉のソテー','鮭のムニエル','白身魚のフライ','ポークソテー','ローストチキン','ローストビーフ','ミートローフ','アクアパッツァ','チキンのトマト煮','煮込みハンバーグ','豆腐ハンバーグ','肉巻き野菜','厚揚げの煮物','ゴーヤチャンプルー','豚キムチ','トンテキ','鶏の竜田揚げ','ささみフライ','手羽先の甘辛焼き','つくね','焼き鳥盛り合わせ','かれいの煮付け','金目鯛の煮付け','刺身の盛り合わせ','たたききゅうりと牛しゃぶ','プルコギ','タッカルビ','サムギョプサル','チャプチェ','タンドリーチキン','サテ（焼き鳥串）','ルンダン','ヤムウンセン','ガイヤーン','鶏肉のカシューナッツ炒め','空心菜炒め'],
+ bowl:['親子丼','牛丼','カツ丼','天丼','海鮮丼','ねぎとろ丼','鉄火丼','うな丼','そぼろ丼','中華丼','麻婆丼','豚丼','ロコモコ','タコライス','ガパオライス','ビビンバ','魯肉飯','カオマンガイ','ナシゴレン','チキンビリヤニ','オムライス','チャーハン','キムチチャーハン','ドリア','ハヤシライス'],
+ curry:['カレーライス','キーマカレー','グリーンカレー','レッドカレー','マッサマンカレー','バターチキンカレー','スープカレー','シーフードカレー','夏野菜カレー','カツカレー','ほうれん草カレー（サグカレー）'],
+ noodle:['醤油ラーメン','味噌ラーメン','塩ラーメン','豚骨ラーメン','担々麺','冷やし中華','つけ麺','焼きそば','きつねうどん','天ぷらうどん','カレーうどん','焼きうどん','ざるそば','天ぷらそば','とろろそば','そうめん','にゅうめん','フォー','パッタイ','ラクサ','ミーゴレン','牛肉麺','ビーフン炒め','冷麺','ビビン麺','ジャージャー麺','ちゃんぽん','皿うどん'],
+ pasta:['ナポリタン','カルボナーラ','ペペロンチーノ','ミートソース','ボンゴレ','明太子パスタ','たらこパスタ','ジェノベーゼ','アラビアータ','きのこの和風パスタ','トマトクリームパスタ','ペスカトーレ','ラザニア','マカロニグラタン'],
+ pot:['寄せ鍋','キムチ鍋','もつ鍋','しゃぶしゃぶ','豆乳鍋','水炊き','湯豆腐','おでん','石狩鍋','鶏だんご鍋','白菜と豚バラのミルフィーユ鍋','トマト鍋','カレー鍋','タイスキ','火鍋','プデチゲ','スンドゥブチゲ','ポトフ','クリームシチュー','ビーフシチュー'],
+ morn:['トースト','バタートースト','ハニートースト','ピザトースト','しらすトースト','小倉トースト','フレンチトースト','ホットケーキ','パンケーキ','ワッフル','ベーグルサンド','ホットサンド','卵サンド','BLTサンド','おにぎり','鮭おにぎり','納豆ごはん','卵かけごはん','焼き魚定食','グラノーラとヨーグルト','オートミール','スクランブルエッグ','目玉焼き','ハムエッグ','オムレツ','エッグベネディクト','フルーツサンド','たまご雑炊','おかゆ','中華粥','バインミー','トーストとスープ','チーズトースト','シナモンロール','クロワッサンサンド','コーンフレーク','スムージーボウル','味噌汁とおにぎり','お茶漬け','ソーセージエッグ'],
+ asianLunch:['生春巻きとフォー','バインミーセット','カオマンガイ','ガパオライス','パッタイ','トムヤムヌードル','ナシゴレン','ミーゴレン','ラクサ','ビビンバ','キンパ','トッポッキ','チヂミ','小籠包','焼売','魯肉飯','牛肉麺','担々麺','海南チキンライス','ビリヤニ','ナンとカレー','サモサ','ダルカレー','ロティ','チャプチェ丼'],
+ night:['お茶漬け','カップラーメン','おにぎり','たまご雑炊','焼きおにぎり','にゅうめん','チーズトースト','インスタント焼きそば','湯豆腐','具だくさんスープ','バナナとヨーグルト','冷やしうどん','ホットミルクとクッキー','ゆで卵','クラッカーとチーズ']};
+const DISHC={rice:'#f6f3ea',bread:'#d9a860',soup:'#c8883a',salad:'#7fbf5c',plate:'#c8682a',bowl:'#d9a24a',curry:'#b8682a',noodle:'#e8c070',pasta:'#e86a3a',pot:'#d86a4a',steak:'#7a3a2a',sushi:'#e88a8a',cake:'#f2d6c0',snack:'#e8c070'};
+function dishType(n){if(/鍋|しゃぶ|おでん|湯豆腐|水炊き|タイスキ|火鍋|チゲ|ポトフ|シチュー/.test(n))return'pot';if(/カレー(?!うどん|鍋|パン)/.test(n)&&!/うどん/.test(n))return'curry';
+  if(/ラーメン|そば|うどん|そうめん|麺|フォー|パッタイ|ラクサ|ゴレン|ビーフン|ちゃんぽん|焼きそば/.test(n)&&!/ナシゴレン/.test(n))return'noodle';if(/パスタ|ナポリタン|カルボナーラ|ペペロンチーノ|ミートソース|ボンゴレ|ジェノベーゼ|アラビアータ|ペスカトーレ|ラザニア|グラタン/.test(n))return'pasta';
+  if(/丼|ライス|ビビンバ|飯|ナシゴレン|ビリヤニ|チャーハン|ドリア|オムライス|ロコモコ|カオマンガイ/.test(n))return'bowl';if(/味噌汁|スープ|汁|ポタージュ|チャウダー|トムヤム|ユッケジャン|参鶏湯|ボルシチ|ガスパチョ/.test(n))return'soup';
+  if(/サラダ|おひたし|ナムル|キムチ|ソムタム|冷奴|酢の物|浅漬け|カプレーゼ|ピクルス|生春巻き|ラタトゥイユ/.test(n))return'salad';if(/ステーキ|トンテキ|ハンバーグ|ソテー|ローストビーフ/.test(n))return'steak';
+  if(/刺身|寿司/.test(n))return'sushi';if(/ごはん|ご飯|おにぎり|おかゆ|粥|雑炊|茶漬け/.test(n))return'rice';if(/パン|トースト|サンド|ナン|バゲット|クロワッサン|ベーグル|ロール|ケーキ|ワッフル|バインミー/.test(n))return'bread';return'plate';}
+function dishColor(n,t){const h=hash(n.length,n.charCodeAt(0),n.charCodeAt(n.length-1));const base={plate:['#c8682a','#d9883b','#a85a3a','#e8b860','#c8432e','#8a5a3b'],bowl:['#d9a24a','#c8682a','#e8c46a','#a8442a'],soup:['#c8883a','#e8d8a0','#d86a4a','#e8b860','#f2e6c8'],salad:['#7fbf5c','#a6d08a','#e86a5a','#5a9a4a'],noodle:['#e8c070','#c8883a','#d86a4a','#f2e6c8'],pasta:['#e86a3a','#f2e6c8','#7aa860','#c8883a'],pot:['#d86a4a','#e8d8a0','#c8432e','#e8b860']}[t];return base?base[Math.floor(h*base.length)%base.length]:DISHC[t]||'#c8682a';}
+const mkDish=n=>{const t=dishType(n);return{n,t,c:dishColor(n,t)};};
+function mealPlan(slot){const s=season(),t=tempNow(),r=Math.random(),P=a=>pick(a);let names;
+  if(slot==='night')names=[P(FOOD.night)];
+  else if(slot==='b'){names=r<.55?[P(FOOD.morn)]:r<.8?[P(FOOD.morn),P(FOOD.soup.filter(x=>/味噌汁|スープ|ポタージュ/.test(x)))]:[P(['ごはん','ごはん','雑穀ごはん']),P(['焼き鮭','だし巻き玉子','目玉焼き','納豆','焼きのり']),P(FOOD.soup.slice(0,4)),P(FOOD.side.slice(7,14))];}
+  else if(slot==='l'){const pool=[].concat(FOOD.noodle,FOOD.pasta,FOOD.bowl,FOOD.curry,FOOD.asianLunch);names=r<.7?[P(pool)]:[P(pool),P(FOOD.side)];if(t>=27&&Math.random()<.4)names=[P(['冷やし中華','そうめん','ざるそば','冷麺','ビビン麺','冷やしうどん','ガスパチョとパン'])];}
+  else{let mains=FOOD.main.slice();if(t<12&&Math.random()<.35)return finish([P(FOOD.pot),P(FOOD.side)]);
+    if(r<.18)names=[P(FOOD.curry.concat(FOOD.bowl)),P(FOOD.side)];else if(r<.28)names=[P(FOOD.pasta),P(FOOD.side.filter(x=>/サラダ|カプレーゼ|ピクルス|ラタトゥイユ/.test(x))),P(['コンソメスープ','ミネストローネ','コーンポタージュ','オニオンスープ'])];
+    else{const m=P(mains),west=/ハンバーグ|ステーキ|ソテー|ムニエル|ロースト|ミートローフ|アクアパッツァ|トマト煮|ストロガノフ|ロールキャベツ|フライ|コロッケ|カツ/.test(m),asian=/プルコギ|タッカルビ|サムギョプサル|チャプチェ|タンドリー|サテ|ルンダン|ヤムウンセン|ガイヤーン|カシューナッツ|空心菜|麻婆|酢豚|エビチリ|エビマヨ|回鍋肉|青椒肉絲|八宝菜|春巻き|油淋鶏|棒棒鶏|よだれ鶏|餃子/.test(m);
+      const st=west&&Math.random()<.5?P(['バゲット','ロールパン','ごはん','クロワッサン']):asian&&Math.random()<.4?P(['ごはん','ジャスミンライス','ナン']):P(FOOD.staple.slice(0,8).concat(s==='autumn'?['栗ごはん']:s==='spring'?['豆ごはん']:[]));
+      const sp=west?P(['コンソメスープ','ミネストローネ','コーンポタージュ','オニオンスープ','クラムチャウダー','かぼちゃのポタージュ']):asian?P(['中華スープ','わかめスープ','卵スープ','トムヤムクン','ユッケジャン']):P(['豆腐とわかめの味噌汁','なめこの味噌汁','豚汁','あさりの味噌汁','けんちん汁','すまし汁']);
+      names=[st,m,sp,P(FOOD.side)];if(Math.random()<.25)names.pop();}}
+  return finish(names);
+  function finish(ns){const items=ns.map(mkDish);const main=ns.find(n=>!/ごはん|パン|バゲット|ロール|クロワッサン|ナン|ライス$|汁|スープ|ポタージュ|サラダ/.test(n))||ns[0];return{name:ns.length>1?`${main}の${slot==='b'?'朝ごはん':slot==='l'?'ランチ':slot==='night'?'夜食':'定食'}`:ns[0],main,items,list:ns.join('・')};}}
+function mealSlot(){const h=hourNow();return h>=5&&h<10.5?'b':h>=10.5&&h<15?'l':h>=21.5||h<3?'night':'d';}
+const meal=()=>mealPlan(mealSlot()).main;
+/* --- tea time --- */
+const TEA=['ダージリン','アッサム','アールグレイ','セイロン','ウバ','キーマン','ニルギリ','ディンブラ','レディグレイ','ロイヤルミルクティー','アップルティー','チャイ'];
+const COFFEE=['アメリカン','ブラックコーヒー','カフェオレ','エスプレッソ','カフェラテ','カプチーノ','カフェモカ','アイスコーヒー','水出しコーヒー','ウインナーコーヒー'];
+const GTEA=['緑茶','ほうじ茶','玄米茶','麦茶','ジャスミン茶','烏龍茶','抹茶ラテ'];
+const JUICE=['オレンジジュース','りんごジュース','グレープジュース','トマトジュース','ミックスジュース','グレープフルーツジュース'];
+const SWEET=['ショートケーキ','チーズケーキ','ガトーショコラ','モンブラン','プリン','シュークリーム','エクレア','ドーナツ','マカロン','クッキー','スコーン','マフィン','ワッフル','パウンドケーキ','バウムクーヘン','どら焼き','大福','羊羹','たい焼き','みたらし団子','わらび餅','カステラ','せんべい','あんみつ','ロールケーキ','フルーツタルト','ティラミス','アップルパイ','月餅','マンゴープリン','杏仁豆腐','タピオカミルクティー'];
+function sweetCol(n){return/ショコラ|チョコ|ティラミス|どら焼き|羊羹|月餅|ポッキー|アルフォート|キットカット/.test(n)?'#5a3a2a':/抹茶|わらび/.test(n)?'#a8c860':/いちご|ショート|マカロン|ピンク/.test(n)?'#f2a0b0':/マンゴー|プリン|カステラ|パイ|タルト/.test(n)?'#f2c860':/大福|杏仁|団子/.test(n)?'#f6f1e6':'#d9a860';}
+function drinkCol(n){return/ブラック|エスプレッソ|アメリカン|アイスコーヒー|水出し/.test(n)?'#3a2416':/カフェ|カプチーノ|ウインナー/.test(n)?'#b8885a':/ミルク|チャイ/.test(n)?'#d8b890':/緑茶|抹茶/.test(n)?'#a8c860':/ほうじ|麦茶|烏龍|玄米/.test(n)?'#b8783a':/ジャスミン/.test(n)?'#e8d890':/オレンジ|ミックス/.test(n)?'#f2a83a':/りんご|アップル/.test(n)?'#f2d070':/グレープ(?!フルーツ)/.test(n)?'#7a2a5a':/トマト/.test(n)?'#d8402a':/グレープフルーツ/.test(n)?'#f2c8a0':'#b85a2a';}
+function teaTime(){const h=hourNow(),d=Math.random()<.4?pick(TEA):Math.random()<.5?pick(COFFEE):Math.random()<.6?pick(GTEA):pick(JUICE);
+  const sw=/緑茶|ほうじ|玄米|抹茶/.test(d)?pick(['どら焼き','大福','羊羹','みたらし団子','わらび餅','せんべい','カステラ','たい焼き','あんみつ']):/ジャスミン|烏龍/.test(d)?pick(['月餅','杏仁豆腐','マンゴープリン','ごま団子']):Math.random()<.25?pick(SNK.map(x=>x[0]).filter(x=>!/チーズ|サラミ|ジャーキー|漬物|さきいか|あたりめ|えいひれ|鮭とば|貝ひも|都こんぶ|茎わかめ|いか|ちくわ|チーかま/.test(x))):pick(SWEET);
+  return{drink:d,sweet:sw,dc:drinkCol(d),cup:/ジュース/.test(d)?'glass':/緑茶|ほうじ|玄米|麦茶|烏龍|ジャスミン/.test(d)?'yunomi':/コーヒー|カフェ|エスプレッソ|アメリカン|ブラック|カプチーノ|ウインナー/.test(d)?'mug':'teacup'};}
+function drawDish(x,y,d,eaten){const t=d.t,c=d.c;const sh=(rx,ry)=>fillE(g,'rgba(0,0,0,.13)',x+.5,y+.7,rx,ry);
+  if(t==='rice'){sh(2.6,1.5);fillE(g,'#3a3a5a',x,y,2.5,1.5);fillE(g,'#5a5a8a',x,y-.3,2.3,1.2);if(!eaten){fillE(g,'#fbf9f2',x,y-.7,2,1);fillE(g,'#ffffff',x-.5,y-1,.8,.4);}return;}
+  if(t==='soup'){sh(2.4,1.4);fillE(g,'#6a2a1a',x,y,2.4,1.4);fillE(g,'#8a3a2a',x,y-.2,2.2,1.2);if(!eaten){fillE(g,c,x,y-.3,1.8,.85);fillE(g,'rgba(255,255,255,.3)',x-.6,y-.5,.5,.2);}return;}
+  if(t==='bowl'||t==='noodle'){sh(3.3,1.9);fillE(g,'#e8e2d6',x,y,3.3,1.9);fillE(g,'#c8402a',x,y+.6,3.1,.5);if(!eaten){fillE(g,c,x,y-.4,2.8,1.4);if(t==='noodle'){g.strokeStyle='#f6e6a8';g.lineWidth=.35;for(let i=-1;i<=1;i++){g.beginPath();g.moveTo(x-2,y-.5+i*.4);g.quadraticCurveTo(x,y-1+i*.4,x+2,y-.4+i*.4);g.stroke();}fillE(g,'#e86a5a',x+1.2,y-.8,.6,.4);fillE(g,'#7fbf5c',x-1.2,y-.9,.6,.3);}else{fillE(g,shade(c,.2),x-.8,y-.7,1.1,.6);fillE(g,'#f2d070',x+.9,y-.6,.7,.5);}}else fillE(g,'rgba(160,110,60,.35)',x+.6,y-.3,.6,.3);return;}
+  if(t==='pot'){sh(3.8,2.1);fillE(g,'#3a2a24',x,y,3.8,2.1);fillE(g,'#5a4038',x,y-.3,3.5,1.8);if(!eaten){fillE(g,c,x,y-.4,3,1.4);for(let i=0;i<5;i++)fillE(g,['#f6f3ea','#7fbf5c','#e8b860','#c8682a','#f2a0a8'][i],x-1.8+i*.9,y-.5+(i%2)*.5,.55,.4);}fillR(g,'#3a2a24',x-4.4,y-.6,1,.8,.3);fillR(g,'#3a2a24',x+3.4,y-.6,1,.8,.3);return;}
+  if(t==='curry'){sh(3.8,2);fillE(g,'#f3f1ea',x,y,3.8,2);if(!eaten){fillE(g,'#fbf9f2',x-1.2,y-.2,1.8,1.2);fillE(g,c,x+1.1,y,2,1.3);fillE(g,'#e8b860',x+1.4,y-.3,.5,.4);fillE(g,'#c8432e',x+.5,y+.3,.4,.3);}else fillE(g,'rgba(180,110,40,.3)',x+.8,y,.8,.4);return;}
+  if(t==='pasta'){sh(3.6,2);fillE(g,'#f3f1ea',x,y,3.6,2);fillE(g,'#e6e1d6',x,y,2.6,1.4);if(!eaten){fillE(g,'#f2d890',x,y-.2,2.2,1.2);g.strokeStyle=c;g.lineWidth=.45;g.beginPath();g.ellipse(x,y-.2,1.4,.7,0,0,TAU*.85);g.stroke();fillE(g,c,x+.3,y-.4,.8,.45);}return;}
+  if(t==='salad'){sh(2.8,1.6);fillE(g,'rgba(220,240,250,.8)',x,y,2.8,1.6);if(!eaten){fillE(g,'#7fbf5c',x,y-.4,2.2,1.1);fillE(g,'#a6d08a',x-.8,y-.7,.9,.5);fillE(g,'#e86a5a',x+.8,y-.5,.5,.4);fillE(g,'#f2d070',x+.1,y-.9,.4,.3);fillE(g,c,x-.2,y-.2,.6,.4);}return;}
+  if(t==='steak'){sh(3.8,2);fillR(g,'#2a2a30',x-3.8,y-1.8,7.6,3.6,1);fillR(g,'#a8763a',x-3.6,y-1.6,7.2,3.2,.8);if(!eaten){fillE(g,c,x-.4,y-.3,2.4,1.3);fillE(g,shade(c,.2),x-1,y-.7,1,.4);fillE(g,'#f2a83a',x+2.2,y+.3,.7,.5);fillE(g,'#7fbf5c',x+2.3,y-.8,.7,.4);}return;}
+  if(t==='sushi'){sh(3.8,1.6);fillR(g,'#c8a070',x-3.8,y-1.4,7.6,2.8,.4);if(!eaten)for(let i=0;i<5;i++){fillR(g,'#fbf9f2',x-3.2+i*1.4,y-.6,1.1,1,.3);fillR(g,['#e86a6a','#f2a83a','#e8e2d6','#e86a6a','#c8432e'][i],x-3.2+i*1.4,y-.9,1.1,.6,.3);}return;}
+  if(t==='bread'){sh(3,1.6);fillE(g,'#8a5a30',x,y,3,1.6);fillE(g,'#a8763a',x,y-.2,2.7,1.3);if(!eaten){fillE(g,c,x-.7,y-.6,1.3,.8);fillE(g,shade(c,.15),x+.8,y-.5,1.2,.75);}return;}
+  if(t==='cake'){sh(2.4,1.3);fillE(g,'#f3f1ea',x,y,2.4,1.3);if(!eaten){g.fillStyle=c;g.beginPath();g.moveTo(x-1.2,y+.2);g.lineTo(x+1.3,y+.2);g.lineTo(x+.4,y-1.6);g.closePath();g.fill();fillE(g,'#e8323e',x+.4,y-1.6,.35,.35);}return;}
+  if(t==='cup'){const k=d.cup||'mug';if(k==='glass'){fillR(g,'rgba(220,240,250,.7)',x-.9,y-2.6,1.8,2.8,.4);if(!eaten)fillR(g,c,x-.7,y-2,1.4,2,.3);return;}
+    if(k==='yunomi'){fillR(g,'#7a8a6a',x-1,y-2,2,2.2,.5);if(!eaten)fillE(g,c,x,y-1.9,.8,.3);return;}
+    if(k==='teacup'){fillE(g,'#f3f1ea',x,y+.2,1.8,.7);fillE(g,'#ffffff',x,y-.4,1.3,.9);if(!eaten)fillE(g,c,x,y-.7,1,.4);g.strokeStyle='#ffffff';g.lineWidth=.35;g.beginPath();g.arc(x+1.5,y-.4,.45,-1.4,1.4);g.stroke();return;}
+    fillR(g,'#f3f1ea',x-1,y-2.2,2,2.3,.5);if(!eaten)fillE(g,c,x,y-2.1,.8,.3);g.strokeStyle='#f3f1ea';g.lineWidth=.4;g.beginPath();g.arc(x+1.2,y-1.1,.55,-1.4,1.4);g.stroke();return;}
+  sh(3.4,1.9);fillE(g,'#f3f1ea',x,y,3.4,1.9);fillE(g,'#e6e1d6',x,y,2.4,1.3);if(!eaten){fillE(g,c,x,y-.5,2.1,1.1);fillE(g,shade(c,.25),x-.8,y-.9,.8,.4);fillE(g,'#7fbf5c',x+1.5,y-.2,.6,.4);}else{fillE(g,'rgba(160,110,60,.35)',x+.8,y,.6,.3);}}
+function drawFoods(x,y,foods,eaten){const n=foods.length,L=n===1?[[0,0]]:n===2?[[-4,0],[4,0]]:n===3?[[-4.5,-1.5],[4.5,-1.5],[0,2.4]]:[[-4.5,-2],[4.5,-2],[-4.5,2.6],[4.5,2.6]];
+  const ord=foods.map((f,i)=>({f,o:L[i]||[0,0]})).sort((a,b)=>a.o[1]-b.o[1]);g.save();g.translate(x,y);g.scale(1.3,1.3);for(const{f,o}of ord)drawDish(o[0],o[1],f,eaten);g.restore();}
+/* ===== robot vacuum ===== */
+const RV={ph:'dock',t:rnd(60,180),path:[],x:0,y:0,tx:0,ty:0,targets:[],dir:0,spin:0};
+function rvDock(){const u=U('robovac');return u?{x:u.x,y:u.y}:null;}
+function rvTick(dt){if(!S||!has('robovac')){RV.ph='dock';return;}const d=rvDock();if(!d)return;
+  if(RV.ph==='dock'){RV.tx=d.x;RV.ty=d.y;RV.x=d.x*T;RV.y=d.y*T;RV.t-=dt;if(RV.t<=0&&!(C.sleeping&&hourNow()<6)){RV.ph='clean';RV.targets=[];for(let i=0;i<7;i++){const r=randomTile('in',pick(['liv','liv','kit','bed']));if(r)RV.targets.push(r);}RV.targets.push({x:d.x,y:d.y,home:1});RV.path=[];
+      if(C.scene==='in'&&!msgBusy()&&Math.random()<.5)say(pick(['あ、ロボット掃除機が動き出した','おそうじロボ、いってらっしゃい','今日もおそうじよろしくね']));if(M&&M.scene==='in'&&!M.sleeping&&Math.random()<.3)msay(pick(['ロボちゃん、がんばれ〜','あ、足どけなきゃ']));}return;}
+  if(!RV.path.length){const g2=RV.targets[0];if(!g2){RV.ph='dock';RV.t=rnd(8,16)*60;return;}if(RV.tx===g2.x&&RV.ty===g2.y){RV.targets.shift();if(g2.home){RV.ph='dock';RV.t=rnd(8,16)*60;if(C.scene==='in'&&!msgBusy()&&Math.random()<.3)say(pick(['ロボット掃除機、充電に戻った','おつかれさま、ロボちゃん']));}return;}
+    const p=bfs('in',RV.tx,RV.ty,g2.x,g2.y);if(!p){RV.targets.shift();return;}RV.path=p;}
+  const[nx,ny]=RV.path[0],gx=nx*T,gy=ny*T,dx=gx-RV.x,dy=gy-RV.y,dist=Math.hypot(dx,dy),sp=T*1.1*dt;
+  if(dist>0.01)RV.dir=Math.atan2(dy,dx);RV.spin+=dt*14;
+  if(dist<=sp){RV.x=gx;RV.y=gy;RV.tx=nx;RV.ty=ny;RV.path.shift();}else{RV.x+=dx/dist*sp;RV.y+=dy/dist*sp;}
+  if(Math.random()<dt*3)particles.push({sc:'in',x:RV.x+T/2+rnd(-6,6),y:RV.y+T-4+rnd(-2,2),vx:rnd(-6,6),vy:rnd(-10,-3),life:.6,max:.6,type:'spark'});}
+function drawRobo(cx,cy,on){fillE(g,'rgba(0,0,0,.18)',cx+.6,cy+1.4,7.4,3.6);fillE(g,'#2c2c34',cx,cy,7.2,4.2);fillE(g,'#3d3d48',cx,cy-.6,6.6,3.6);fillE(g,'#55556a',cx,cy-1,4.6,2.4);
+  fillE(g,'rgba(255,255,255,.25)',cx-2,cy-1.8,2,.7);const bl=(performance.now()/400|0)%2;fillE(g,on?(bl?'#4fd06f':'#2a8a4a'):'#4fa0ef',cx+3.2,cy-1.2,.6,.45);
+  if(on){const a=RV.spin;g.strokeStyle='rgba(200,200,210,.7)';g.lineWidth=.4;for(let i=0;i<3;i++){const b=a+i*2.1;g.beginPath();g.moveTo(cx-4,cy+1.6);g.lineTo(cx-4+Math.cos(b)*2,cy+1.6+Math.sin(b)*.8);g.stroke();}}}
+function dRoboDock(X,Y){prism(X+6,Y+6,12,6,8,'#e6e9ee',{top:'#f6f7f9',r:2});fillR(g,'#3d3d48',X+9,Y-1,6,2,.6);const on=RV.ph!=='dock';fillE(g,on?'#ef8f4f':'#4fd06f',X+12,Y+2.5,.6,.6);
+  if(RV.ph==='dock')drawRobo(X+12,Y+15,false);}
 function tvSeat(){const tv=S.layout.tv,sf=S.layout.sofa;
   if(has('sofa')&&sf&&tv&&sf.y>tv.y&&Math.abs((sf.x+2)-(tv.x+1))<=2)return[...goF('sofa'),snapF('sofa')];
   let sp=null;const spot=()=>{if(!tv)return null;for(const dy of[2,3,1,4])for(const dx of[0,1,-1,2]){const x=tv.x+dx,y=tv.y+dy;if(walkIn(x,y))return(sp={x,y,d:'up'});}return null;};
@@ -1287,7 +1367,7 @@ const A={
     s.push(FN(()=>{C.sleeping=false;say(night?(hourNow()>=7.5?pick(['しまった、寝坊しちゃった！','わっ、もうこんな時間！？','ふあ…ちょっと寝すぎたかも']):has('aclock')?'ジリリリ…！おはよう！':pick(['ふわぁ…おはよう！','よく寝た〜！'])):'ふあ、すっきり！');}));
     if(has('wardrobe'))s.push(...goF('wardrobe'),W8(1.2),FN(wearDay));else s.push(FN(wearDay));
     return s;},
-  eat(){const s=[],m=meal();
+  eat(){const s=[],slot=mealSlot(),plan=mealPlan(slot),m=plan.main,SJ={b:'朝ごはん',l:'お昼',d:'晩ごはん',night:'夜食'}[slot];S.mealDone=S.mealDone||{};S.mealDone[slot]=now().toDateString();
     if(!has('fridge')){want('fridge');
       const tr=OUT.trees.find(t=>t.fruit),u=tr&&adjOut(tr.x,tr.y);
       if(!badOut()&&u)return[{t:'go',sc:'out',x:u.x,y:u.y},{t:'face',d:u.d},SAY('冷蔵庫がないから、木の実をとろう'),W8(2),FN(()=>C.holding='apple'),W8(4,need('hunger',12)),FN(()=>{C.holding=null;}),SAY('もぐもぐ…あまずっぱい')];
@@ -1295,12 +1375,11 @@ const A={
     if(has('cupboard'))s.push(...goF('cupboard'),SAY('お皿を出して…'),W8(1.2));
     s.push(...goF('fridge'),SAY(pick(['冷蔵庫になにがあったかな','材料、あるかな？'])),W8(1.6),FN(()=>C.holding='food'));
     if(has('microwave')&&Math.random()<.35)s.push(...goF('microwave'),FN(()=>{C.holding=null;S.mwUntil=Date.now()+5000;}),SAY('残りものをレンジでチン！'),W8(4.5),FN(()=>{C.holding='dish';}));
-    else if(has('stove')){s.push(...goF('stove'),FN(()=>{C.holding=null;C.cooking=true;}),SAY(`${m}を作るよ`),W8(2.6),SAY(()=>cookLine(m)),W8(3),FN(()=>{C.cooking=false;C.holding='dish';}));
-      if(has('counter')&&Math.random()<.6)s.push(...goF('counter'),SAY('炊きたてのごはんもよそって'),W8(1.2));}
+    else if(has('stove')){s.push(...goF('stove'),FN(()=>{C.holding=null;C.cooking=true;}),SAY(plan.items.length>1?`${SJ}は${plan.list}にしよう`:`${SJ}は${m}を作るよ`),W8(2.6),SAY(()=>cookLine(m)),W8(2+plan.items.length),FN(()=>{C.cooking=false;C.holding='dish';}));
+      if(has('counter')&&plan.items.some(d=>d.t==='rice'||d.t==='bowl'||d.t==='curry'))s.push(...goF('counter'),SAY('炊きたてのごはんもよそって'),W8(1.2));}
     else{want('stove');s.push(FN(()=>{C.holding='dish';}));}
-    const fc=['#d9883b','#c8432e','#e8c46a','#8a5a3b','#f2d6a0','#b8682a','#d9b86a'][Math.floor(hash(m.length,m.charCodeAt(0),3)*7)];
-    if(has('table'))s.push(...goF('table'),snapF('table'),FN(()=>{C.holding=null;C.tableSet={k:'table',food:fc,phase:'full'};}),...mateJoinSteps('table',ms=>{if(C.tableSet){C.tableSet.food2=fc;C.tableSet.mt=ms.tile;}}),...talkMate(()=>M&&M.busy&&M.sit?pick(MEALTALK)(m):null),SAY(pick(['いただきます！',`${m}、できたてだ`])));else{want('table');s.push(...sitFloor('liv'));}
-    s.push(W8(6,need('hunger',10)),FN(()=>{if(C.tableSet)C.tableSet.phase='eaten';say(pick([`${m}、おいしかった！`,'ごちそうさまでした','おなかいっぱい！']));}),W8(1.6),
+    if(has('table'))s.push(...goF('table'),snapF('table'),FN(()=>{C.holding=null;C.tableSet={k:'table',foods:plan.items,phase:'full'};}),...mateJoinSteps('table',ms=>{if(C.tableSet){C.tableSet.foods2=plan.items.map(x=>({...x}));C.tableSet.mt=ms.tile;}}),...talkMate(()=>M&&M.busy&&M.sit?pick(MEALTALK)(m):null),SAY(pick(['いただきます！',`${m}、できたてだ`])));else{want('table');s.push(...sitFloor('liv'));}
+    s.push(W8(5+plan.items.length*1.5,need('hunger',slot==='night'?6:10)),FN(()=>{if(C.tableSet)C.tableSet.phase='eaten';say(pick([`${m}、おいしかった！`,'ごちそうさまでした','おなかいっぱい！',slot==='night'?'夜食って、なんでこんなにおいしいんだろう':`${SJ}、満足！`]));}),W8(1.6),
       FN(()=>{C.tableSet=null;C.holding='dish';if(M&&M.busy)mRelease();}),SAY(pick(['お皿をさげよう','片付けまでがごはんです'])));
     if(has('ksink'))s.push(...goF('ksink'),FN(()=>{C.holding=null;}),SAY('お皿を洗おう'),W8(3,wTick('ksink')));else{want('ksink');s.push(FN(()=>{C.holding=null;}));}
     if(has('cupboard'))s.push(...goF('cupboard'),SAY('お皿を食器棚にしまって…完了！'),W8(1));
@@ -1324,9 +1403,9 @@ const A={
     s.push(FN(()=>{C.tvNow=null;}));return s;},
   guide(){const s=[];if(has('lowtable'))s.push(...goF('lowtable'),snapF('lowtable'));else if(has('table'))s.push(...goF('table'),snapF('table'));
     s.push(FN(()=>C.holding='paper'),SAY('今日の番組表をチェック…'),W8(3),FN(()=>{C.holding=null;S.guideAt=Date.now();S.tvPlan=planShow();
-      const p=S.tvPlan;say(p?`${hm(p.start)}から${p.ch}で『${short(p.title,24)}』！${GENRE[p.genre]||''}は見のがせない`:'今日は見たい番組がないかも');}));return s;},
+      const p=S.tvPlan;say(p?`${hm(p.start)}から${p.ch}で『${p.title}』！${GENRE[p.genre]||''}は見のがせない`:'今日は見たい番組がないかも');}));return s;},
   tvshow(){if(!has('tv'))return null;const p=S.tvPlan;if(!p)return null;const s=tvSeat();let tk=0;
-    s.push(FN(()=>{C.tvNow=p;say(pick([`始まる！『${short(p.title,24)}』`,`『${short(p.title,24)}』の時間だ！`]));}),
+    s.push(FN(()=>{C.tvNow=p;say(pick([`始まる！『${p.title}』`,`『${p.title}』の時間だ！`]));}),
       {t:'until',cond:()=>now().getTime()>=Math.min(p.end,p.start+60*60e3)||S.needs.bladder<18||S.needs.hunger<15||(isNight()&&hourNow()<5),
        tick:dt=>{S.needs.fun=clamp(S.needs.fun+dt*.08,0,100);tk+=dt;if(tk>35){tk=0;if(!msgBusy())say(showTalk(p));}}},
       FN(()=>{const done=now().getTime()>=p.end;C.tvNow=null;S.tvPlan=null;say(done?pick(['おもしろかった〜！','また来週も見よう','いい番組だった']):'ちょっと中断…あとで続きが気になる');}));return s;},
@@ -1409,7 +1488,7 @@ const A={
     s.push(FN(()=>{S.remodelAt=Date.now();S.noRoom=[];save();}),SAY(pick(['うん、いい感じ！','すっきりした！','新しいお部屋みたい'])));return s;},
   radio(){if(!has('radio')){want('radio');return null;}const p=radioOnAir();let tk=0;
     return[...goF('radio'),W8(.6),FN(()=>{C.radioNow=p;}),...(()=>{const u=U('radio');return u?[{t:'snap',dyn:()=>{const uu=U('radio');return uu?{px:(uu.x+.5)*T,py:uu.y*T+19,pose:'sit',d:uu.d}:null;}}]:[];})(),
-      SAY(()=>p?pick([`ラジオをつけよう。${p.ch}で『${short(p.title,20)}』だって`,`${p.ch}を聞こうかな`]):'ラジオ、なにやってるかな'),
+      SAY(()=>p?pick([`ラジオをつけよう。${p.ch}で『${p.title}』だって`,`${p.ch}を聞こうかな`]):'ラジオ、なにやってるかな'),
       W8(rnd(22,34),dt=>{need('fun',2.2)(dt);tk+=dt;if(tk>11&&p){tk=0;if(!msgBusy())say(radioTalk(p));}}),
       FN(()=>{C.radioNow=null;}),SAY(pick(['ラジオおしまい','いい時間だった']))];},
   drink(force,pref){const today=now().toDateString();if(S.drinkDay!==today){S.drinkDay=today;S.drinkN=0;}const h=hourNow();if(!force){if((S.drinkN||0)>=4)return null;if(h<11&&h>=5)return null;if(Date.now()-(S.drinkAt||0)<50*60e3)return null;}
@@ -1459,6 +1538,17 @@ const A={
   chat(){if(!mateFree())return null;let tg=null;return[FN(()=>{mEngage();M.goal=null;M.moving=false;}),FN(()=>{if(!M)return;const sc=M.scene;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const x=M.tx+dx,y=M.ty+dy;if(sc==='in'?walkIn(x,y):walkOut(x,y)){tg={x,y,sc};C.steps.splice(1,0,{t:'go',sc,x,y});return;}}}),
     FN(()=>{if(!M)return;const dx=M.tx-C.tx,dy=M.ty-C.ty;C.dir=Math.abs(dx)>=Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');M.dir=C.dir==='right'?'left':C.dir==='left'?'right':C.dir==='up'?'down':'up';}),
     ...talkMate(()=>chatLines()),FN(()=>{mRelease();S.chatAt=Date.now();emote('♪',1.5);})];},
+  oyatsu(){const tt=teaTime(),d=tt.drink,sw=tt.sweet,today=now().toDateString();S.oyatsuDay=today;S.oyatsuAt=Date.now();const isC=/コーヒー|カフェ|エスプレッソ|アメリカン|ブラック|カプチーノ|ウインナー/.test(d),hot=!/ジュース|アイス|麦茶|水出し/.test(d);
+    const s=[SAY(pick(['おやつにしよう！','ちょっとひと休み、ティータイム','甘いもの食べたくなっちゃった','休憩、休憩〜']))];
+    if(has('fridge'))s.push(...goF('fridge'),SAY(`${sw}があったはず…あった！`),W8(1.2));
+    if(hot&&has('stove'))s.push(...goF('stove'),FN(()=>{C.cooking=true;}),SAY(isC?`${d}を淹れよう。いい香り…`:/茶/.test(d)?`お湯をわかして${d}を…`:`${d}を淹れて…`),W8(3),FN(()=>{C.cooking=false;}));else s.push(SAY(`${d}を用意して…`),W8(1));
+    const foods=[{n:sw,t:/ケーキ|ショコラ|モンブラン|タルト|ティラミス|パイ|ロール|カステラ|バウム/.test(sw)?'cake':'plate',c:sweetCol(sw)},{n:d,t:'cup',cup:tt.cup,c:tt.dc}];
+    if(has('table'))s.push(...goF('table'),snapF('table'),FN(()=>{C.holding=null;C.tableSet={k:'table',foods,phase:'full'};}),...mateJoinSteps('table',ms=>{if(C.tableSet){C.tableSet.foods2=foods.map(x=>({...x}));C.tableSet.mt=ms.tile;}}));
+    else if(has('sofa'))s.push(...goF('sofa'),snapF('sofa'),FN(()=>{C.holding='tea';}));else s.push(...sitFloor('liv'),FN(()=>{C.holding='tea';}));
+    s.push(...talkMate(()=>M&&M.busy&&M.sit?pick([[['m','おやつ？いいね！'],['me',`${sw}だよ`],['m',`${d}と合うね`]],[['m',`${d}、いい香り`],['me','でしょ？'],['m','ほっとするね']],[['m','おやつの時間って幸せ'],['me','ほんとに'],['m','明日のおやつは何にしよう']]]):null),
+      SAY(()=>pick([`${sw}、おいしい〜`,`${d}と${sw}、最高の組み合わせ`,'ほっとするなあ',`${d}、ちょうどいい温度`,'甘いもの食べると元気出る！'])),W8(9,dt=>{need('fun',1.5)(dt);need('hunger',2)(dt);}),
+      FN(()=>{if(C.tableSet)C.tableSet.phase='eaten';}),W8(1),FN(()=>{C.tableSet=null;C.holding='dish';if(M&&M.busy)mRelease();}),SAY(pick(['ごちそうさま','さて、もうひとがんばり'])));
+    if(has('ksink'))s.push(...goF('ksink'),FN(()=>{C.holding=null;}),SAY('カップを洗っておこう'),W8(2,wTick('ksink')));else s.push(FN(()=>{C.holding=null;}));return s;},
   wander(){const s=[];for(let i=0;i<2;i++)s.push({t:'go',sc:'in',dyn:()=>randomTile('in')},W8(rnd(1,3)));return s;},
 };
 function moveSteps(k){let target=null;
@@ -1477,6 +1567,9 @@ function chooseActivity(){
   if(sleepTime(0))add('sleep',400);else if(n.energy<15)add('sleep',60);
   if(n.bladder<35)add('toilet',95-n.bladder);
   if(n.hunger<40)add('eat',90-n.hunger);
+  {const md=S.mealDone||{},win={b:[6.5,9.5],l:[11.5,13.5],d:[18,20.5]};for(const k in win){const[a,b2]=win[k];if(h>=a&&h<b2&&md[k]!==today&&mealSlot()===k)add('eat',160);}
+    if((h>=22||h<1)&&md.night!==today&&hash(now().getDate(),now().getMonth(),77)<.2&&mealSlot()==='night')add('eat',45);
+    if(h>=14.5&&h<16.5&&S.oyatsuDay!==today&&hash(now().getDate(),now().getMonth(),78)<.75)add('oyatsu',70);else if(h>=10&&h<21&&Date.now()-(S.oyatsuAt||0)>3*3600e3)add('oyatsu',4);}
   if(n.hygiene<40||(h>=19.5&&S.bathDay!==today))add('bath',n.hygiene<40?70:55);
   if(!night&&Date.now()-(S.dressAt||S.born)>(S.dressGap||2*3600e3)&&!C.sleeping){S.dressN=(S.dressN||0)+1;S.dressAt=Date.now();S.dressGap=rnd(1.2,3)*3600e3;S.dressMood=1;}
   if(!night&&outfitDiff())add('change',58);
@@ -2242,7 +2335,7 @@ function dStove(X,Y,Wd,Dp,L,t){fillR(g,'#c9ced3',X+8,Y-21,Wd-16,7,2);g.fillStyle
   fillR(g,'#3d3d48',X+6,Y+10,Wd-12,8,1.5);fillR(g,`rgba(255,190,90,${C.cooking?.45:.12})`,X+8,Y+12,Wd-16,4,1);for(let i=0;i<4;i++)knob(X+9+i*10,Y+7.5,'#6b6f78');
   if(C.cooking){prism(X+9,Y-1,12,6,7,'#9aa0aa',{front:'#7d828c',r:3,ns:1});fillE(g,'#e8a23a',X+15,Y-8,4.5,2);}
   else{fillE(g,'#d9483b',X+33,Y-5,4.5,3.4);fillR(g,'#a8352b',X+36,Y-8,4,1.4,.7);fillE(g,'#2c2c33',X+33,Y-8.4,1.4,.8);}}
-function dSink(X,Y){fillR(g,'#9aa6ad',X+4,Y-18,16,13,3);fillR(g,'#e6f2f8',X+5.4,Y-16.6,13.2,10.2,2);fillR(g,'rgba(255,255,255,.75)',X+7,Y-15,2.5,7,1);
+function dSink(X,Y){fillR(g,'#9aa6ad',X+1.5,Y-27,21,22,3.5);fillR(g,'#e6f2f8',X+3,Y-25.5,18,19,2.5);const mg=g.createLinearGradient(X+3,Y-25,X+21,Y-7);mg.addColorStop(0,'rgba(255,255,255,.55)');mg.addColorStop(.5,'rgba(200,225,240,.2)');mg.addColorStop(1,'rgba(255,255,255,.45)');g.fillStyle=mg;g.fillRect(X+3,Y-25.5,18,19);fillR(g,'rgba(255,255,255,.75)',X+5,Y-23,2.6,12,1);fillR(g,'rgba(255,255,255,.5)',X+8.6,Y-23,1.2,7,.6);
   prism(X+3,Y+8,18,13,15,'#d6c09a',{top:'#f6f5f1'});fillE(g,'#dbe9f1',X+12,Y-1,6,3.4);fillE(g,'#c3d6e2',X+12,Y-.6,4,2.2);fillR(g,'#a9b0b8',X+11,Y-6.5,2,4,1);
   g.fillStyle='rgba(0,0,0,.14)';g.fillRect(X+12,Y+8,.8,11);knob(X+10,Y+13,'#a98060');knob(X+14,Y+13,'#a98060');fillR(g,'#9fd0ee',X+17,Y-6,3,4,1);fillR(g,'#ef8fb0',X+18,Y-9,.9,4);if(wActive('sink'))waterStream(X+12,Y-2.6,Y-.6);}
 function dKsink(X,Y){fillR(g,'#f3f1ea',X+3,Y-16,18,2,1);prism(X+1,Y+5,22,16,15,'#ece6da',{front:'#c8b08c'});fillR(g,'#b9c3c9',X+5,Y-8,14,9,2);fillR(g,'#9fb1bd',X+6,Y-7,12,7,2);
@@ -2714,7 +2807,7 @@ function drawGlass(c,x,y,d,lv){const gc='rgba(225,240,250,.55)',lc=d.col;lv=lv==
   else if(d.gl==='none'){fillR(c,d.btc||'#c9ced3',x-1.3,y-4.6,2.6,4.6,.6);fillR(c,'#c9ced3',x-1.3,y-4.8,2.6,.6,.3);}
   else if(d.gl==='mugcup'){fillR(c,d.k==='cocktail'?'#c8783a':'#e6e1d6',x-2,y-4,4,4.2,.8);fillE(c,lc,x,y-3.9,1.6,.5);if(d.hot)fillE(c,'rgba(255,255,255,.45)',x,y-5.6,.8,1.2);}
   else{fillR(c,gc,x-2,y-3.6,4,3.8,.6);fillR(c,lc,x-1.7,y-2.8+(1-lv)*2,3.4,2.8-(1-lv)*2,.4);fillR(c,'rgba(255,255,255,.85)',x-1.2,y-3.2,1.4,1.4,.3);fillR(c,'rgba(255,255,255,.6)',x+.1,y-2.6,1.1,1.1,.3);if(d.salt)fillR(c,'#fff',x-2,y-3.8,4,.4);}}
-function drawSet(x,y,set){if(set.food){fillE(g,'rgba(0,0,0,.12)',x+.6,y+.8,5.6,3.2);fillE(g,'#f3f1ea',x,y,5.5,3.4);fillE(g,'#e6e1d6',x,y,3.8,2.2);
+function drawSet(x,y,set){if(set.foods){drawFoods(x,y,set.foods,set.phase==='eaten');}else if(set.food){fillE(g,'rgba(0,0,0,.12)',x+.6,y+.8,5.6,3.2);fillE(g,'#f3f1ea',x,y,5.5,3.4);fillE(g,'#e6e1d6',x,y,3.8,2.2);
     if(set.phase!=='eaten'){fillE(g,set.food,x,y-.6,3.4,2);fillE(g,shade(set.food,.25),x-1,y-1.2,1.2,.8);}else{fillE(g,'rgba(160,110,60,.35)',x+1,y,.8,.5);fillE(g,'rgba(160,110,60,.35)',x-1.2,y+.6,.6,.4);}
     fillR(g,'#8a6447',x+6.4,y-2.4,.6,4.6);fillR(g,'#8a6447',x+7.4,y-2.4,.6,4.6);}
   if(set.snack){const sx=set.pair?x+(set.drink&&set.drink.tok?10:6):x;fillE(g,'#f3f1ea',sx,y,4.2,2.6);fillE(g,set.sc||'#7fbf5c',sx,y-.4,2.6,1.4);}
@@ -2741,8 +2834,8 @@ function tableSpot(L,uu){const u=uu||useTileFor('table',L);if(!u)return{x:L.x*T+
 function dTable(X,Y,Wd,Dp,L){const H=14;g.fillStyle=WOOD.dk;for(const[lx,ly]of[[X+5,Y+8],[X+Wd-8,Y+8],[X+5,Y+Dp-6],[X+Wd-8,Y+Dp-6]])g.fillRect(lx,ly-H+4,3,H);
   shadowR(X+4,Y+Dp-5,Wd-6,6);fillR(g,WOOD.dk,X+3,Y+Dp-6-H,Wd-6,4,2);fillR(g,'#c49a6c',X+3,Y+3-H,Wd-6,Dp-9,4);grain(X+3,Y+3-H,Wd-6,Dp-9,.06);
   fillR(g,'rgba(255,255,255,.15)',X+5,Y+4-H,Wd-10,1.6,1);fillR(g,VAR.chair[(L.v||0)%4],X+Wd/2-5,Y+3-H,10,Dp-9,1);g.fillStyle='rgba(255,255,255,.3)';g.fillRect(X+Wd/2-5,Y+3-H,10,1);
-  if(C.tableSet&&C.tableSet.k==='table'){const ts=C.tableSet;let p=tableSpot(L);if(ts.pair)p={x:X+Wd/2,y:Y+12};else if(ts.drink)p={x:p.x+(X+Wd/2-p.x)*.55,y:p.y+(Y+9-p.y)*.45};drawSet(p.x,p.y,ts);if(ts.food2&&ts.mt){const p2=tableSpot(L,{x:ts.mt.x,y:ts.mt.y,d:ts.mt.x<L.x?'right':'left'});drawSet(p2.x,p2.y,{food:ts.food2,phase:ts.phase});}}
-  fillR(g,'#9fd0ee',X+Wd/2-1.5,Y+3,3,6,1);fillE(g,'#ef8fb0',X+Wd/2,Y+1,2.6,2.2);fillE(g,'#f2c230',X+Wd/2+2,Y+2.5,1.6,1.4);}
+  if(C.tableSet&&C.tableSet.k==='table'){const ts=C.tableSet;let p=tableSpot(L);if(ts.pair)p={x:X+Wd/2,y:Y+12};else if(ts.drink||ts.foods)p={x:p.x+(X+Wd/2-p.x)*(ts.foods?.35:.55),y:p.y+(Y+9-p.y)*.45};drawSet(p.x,p.y,ts);if((ts.food2||ts.foods2)&&ts.mt){let p2=tableSpot(L,{x:ts.mt.x,y:ts.mt.y,d:ts.mt.x<L.x?'right':'left'});p2={x:p2.x+(X+Wd/2-p2.x)*.35,y:p2.y+(Y+9-p2.y)*.45};drawSet(p2.x,p2.y,ts.foods2?{foods:ts.foods2,phase:ts.phase}:{food:ts.food2,phase:ts.phase});}}
+  const vx=C.tableSet&&C.tableSet.k==='table'?X+Wd/2+(Wd/2-6):X+Wd/2,vy=C.tableSet&&C.tableSet.k==='table'?Y-6:Y+3;fillR(g,'#9fd0ee',vx-1.5,vy,3,6,1);fillE(g,'#ef8fb0',vx,vy-2,2.6,2.2);fillE(g,'#f2c230',vx+2,vy-.5,1.6,1.4);}
 function pTable(L){const out=[];const col=WOOD.md;for(let r=0;r<2;r++){const y=L.y+r;
   if(walkIn(L.x-1,y))out.push({k:y*T+20,f:()=>chair((L.x-1)*T+6,y*T+3,col,'right')});
   if(walkIn(L.x+2,y))out.push({k:y*T+20,f:()=>chair((L.x+2)*T+3,y*T+3,col,'left')});}return out;}
@@ -3338,6 +3431,7 @@ function render(){
   const cp=charPos(),items=[];
   if(V&&V.scene===C.scene&&!V.ride){const vp=vPos();items.push({k:vp.by+(V.sit&&C.snap?1:0),f:drawVisitor});}
   if(M&&S.mate&&M.scene===C.scene)items.push({k:mateKey(),f:drawMate});
+  if(C.scene==='in'&&has('robovac')&&RV.ph!=='dock')items.push({k:RV.y+T-6,f:()=>drawRobo(RV.x+T/2,RV.y+T-6,true)});
   items.push({k:C.scene==='in'&&C.pose==='lie'&&C.snapK==='bed'&&S.layout.bed?(S.layout.bed.y+3)*T+1:cp.by+(C.snap&&C.snap.over?40:0),f:()=>drawChar(g,cp.cx,cp.by,charOpts())});
   if(C.scene==='out'){
     drawIsland(t);
@@ -3448,7 +3542,7 @@ function renderSheet(){
   h+='</dl>';if(S.awayLog&&S.awayLog.lines&&S.awayLog.lines.length){h+=`<h3>留守中の日記（${hm(S.awayLog.at)}に確認）</h3><ul class="awayList">`+S.awayLog.lines.map(l=>`<li>${esc(l)}</li>`).join('')+'</ul>';}h+=prefHTML();$('sheetBody').innerHTML=h;
   $('locStatus').textContent=ENV.locNote||(ENV.locSrc==='ip'?'回線の情報から推定しています。正確にしたいときは「現在地を使う」か地名で指定してください':'');}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function actJP(){if(C.sleeping)return'ねている';return{sleep:'ねる準備',eat:'ごはん',toilet:'トイレ',bath:'お風呂',tv:'テレビ',read:'読書',clean:'そうじ',walk:'さんぽ',bench:'ベンチでひとやすみ',garden:'花壇の水やり',pick:'木の実とり',change:'着がえ',wander:'うろうろ',setup:'家具のセット',mail:'郵便受けを見る',lamp:'ランプのスイッチ',water:'植物に水やり',yoga:'ストレッチ',tea:'お茶',laundry:'洗濯',nap:'ソファで昼寝',face:'洗顔',guide:'番組表チェック',tvshow:'お目当ての番組',chat:'同居人とおしゃべり',newscheck:'ニュースチェック',
+function actJP(){if(C.sleeping)return'ねている';return{sleep:'ねる準備',eat:'ごはん',toilet:'トイレ',bath:'お風呂',tv:'テレビ',read:'読書',clean:'そうじ',walk:'さんぽ',bench:'ベンチでひとやすみ',garden:'花壇の水やり',pick:'木の実とり',change:'着がえ',wander:'うろうろ',setup:'家具のセット',mail:'郵便受けを見る',lamp:'ランプのスイッチ',water:'植物に水やり',yoga:'ストレッチ',tea:'お茶',laundry:'洗濯',nap:'ソファで昼寝',face:'洗顔',guide:'番組表チェック',tvshow:'お目当ての番組',oyatsu:'おやつタイム',chat:'同居人とおしゃべり',newscheck:'ニュースチェック',
   heater:'ストーブのスイッチ',fan:'扇風機のスイッチ',diary:'日記',music:'レコード',piano:'ピアノ',fish:'魚にえさ',exercise:'エアロバイク',kotatsu:'こたつ',relax:'ひと休み',play:'おもちゃで遊ぶ',admire:'飾りをながめる',remodel:'模様替え',harvest:'畑の収穫',scope:'望遠鏡',yardsetup:'庭に置く準備',yardplay:'庭で遊ぶ',yardmove:'庭の模様替え',yardseason:'季節の飾りつけ',yardclear:'季節の片付け',newbed:'花壇づくり',tapwalk:'おでかけ中',drink:'お酒タイム',game:'テレビゲーム',radio:'ラジオ',hobby:'趣味の時間',store:'片付け',unstore:'しまったものを出す',visit:'お客さん'}[C.act]||'ぼんやり';}
 let sheetSnap=null;
 function openSheet(){if(!S)return;sheetSnap={pref:JSON.stringify(S.drinkPref||{}),fav:JSON.stringify(S.favDrinks||[]),ov:{...ENV.ov},mt:S.mate?JSON.stringify({tag:S.mate.tag,out:S.mate.out,near:S.mate.near,look:S.mate.look}):null};renderSheet();renderRename();renderMate();$('dMsg').textContent='';selTab('st');renderEpg();$('sheet').hidden=false;const tb=document.querySelector('#tabs button[data-t=st]');tb&&tb.focus();}
@@ -3920,7 +4014,7 @@ function dailyTalk(me){const mn=mName(),k=wKind(),t=tempNow(),out=[];
   out.push(()=>[['m','今日のごはん、何にする？'],['me',`${meal()}とかどう？`],['m',pick(['いいね！手伝うよ','賛成〜','それ食べたかった！'])]]);
   if(ENV.news.length)out.push(()=>{const it=pickNews();return[['m',`ねえ、『${short(it.title,30)}』ってニュース見た？`],['me',pick(['見た見た！','え、知らなかった','さっきテレビでやってたよ'])+'　'+react(it.title)],['m',reactInfo(newsInfo(it.title),it.title)],['me',pick(['世の中いろいろあるね','続報も気になるね','あとで詳しく調べてみよう'])]];});
   if(ENV.news.length)out.push(()=>{const it=pickNews();return[['me',`『${short(it.title,30)}』だって`],['m',react(it.title)],['me',pick(['だよね','ほんとそう','うんうん'])],['m',pick(['ニュース見てると、いろいろ考えちゃうね','誰かと話せるとほっとする','教えてくれてありがとう'])]];});
-  const p=onAir();if(p)out.push(()=>[['m',`いま${p.ch}で『${short(p.title,22)}』やってるよ`],['me',pick(['あとで見ようかな','それ気になってた','一緒に見る？'])],['m',showTalk(p)]]);
+  const p=onAir();if(p)out.push(()=>[['m',`いま${p.ch}で『${p.title}』やってるよ`],['me',pick(['あとで見ようかな','それ気になってた','一緒に見る？'])],['m',showTalk(p)]]);
   const nt=Object.entries(S.notes||{}).sort((a,b)=>b[1].s-a[1].s);if(nt.length)out.push(()=>[['m',`この前の${nt[0][0]}、おいしかったよね`],['me',pick(['あれは当たりだった！','また飲もう','次は何を開けようか'])],['m',pick(['今度はおつまみも凝ろう','楽しみにしてる'])]]);
   out.push(()=>[['m',`${me}、その${descTop(S.outfit)}似合ってるね`],['me',`ありがとう！${mn}の服もいいね`],['m','えへへ']]);
   out.push(()=>[['m',`${SEASON_JP[season()]}って、何がいちばん好き？`],['me',pick({spring:['お花見かな','新しいことを始める感じ'],summer:['夏祭り！','かき氷'],autumn:['食べものがおいしいこと','紅葉'],winter:['こたつとみかん','イルミネーション']}[season()])],['m',pick(['わかる〜','いいね、今度行こう','それ最高'])]]);
@@ -4016,7 +4110,7 @@ DRINKTALK.push(d=>[['m','このグラス、いいね'],['me','お酒によって
  d=>[['m','夜風、気持ちいいね'],['me','空の上の夜は格別だね'],['m','星もきれい']],
  d=>[['me','最近ハマってることある？'],['m',pick(['パズルゲーム','ラジオ','お菓子作り','散歩'])],['me','いいね、今度教えて']],
  d=>[['m','おつまみ、もうちょっと作ろうか'],['me','いいの？'],['m','まかせて'],['me','やったー']],
- d=>{const p=onAir();return p?[['m',`テレビで『${short(p.title,18)}』やってるね`],['me','飲みながら見よっか'],['m','いいね']]:[['m','ちょっと音楽かけようか'],['me','いいね、ゆったりしたやつ']];},
+ d=>{const p=onAir();return p?[['m',`テレビで『${p.title}』やってるね`],['me','飲みながら見よっか'],['m','いいね']]:[['m','ちょっと音楽かけようか'],['me','いいね、ゆったりしたやつ']];},
  d=>[['m','乾杯しなおそう'],['me','何に？'],['m','今日も一日おつかれさまに！'],['me','かんぱーい！']],
  d=>[['m','お酒、強くなった？'],['me','ううん、楽しくなっただけ'],['m','あはは']]);
 const EXTRA_DAILY=[(me,mn)=>[['m','今日、何か予定ある？'],['me',pick(['特にないかな','庭の手入れしようかな','のんびりする日！'])],['m','じゃあ、お昼一緒に食べよう']],
@@ -4051,14 +4145,15 @@ function awayEvents(t0,t1){const ev=[],done={},seenTx=new Set(),add=(ts,tx,imp)=
     if(S.mate){const ms=sleepAt(ts,1).asleep;if(ms!==mwas){if(!ms&&h>=7.5)add(ts,`${mn}が寝坊した`,2);mwas=ms;}}
     if(sl.asleep)continue;
     const once=(k,lo,hi,f)=>{if(h>=lo&&h<hi&&!done[dk+k]){done[dk+k]=1;f();}};
-    once('b',6.5,9.5,()=>add(ts,`朝ごはんに${pick(MEAL.morn)}を食べた${mn&&Math.random()<.6?`（${mn}も一緒）`:''}`,2));
-    once('l',11.5,13.5,()=>add(ts,`お昼は${pick(MEAL.lunch)}`,2));
-    once('d',18,20.5,()=>add(ts,`夕ごはんに${pick(MEAL.dinner.concat(tempNow()<12?MEAL.cold:[]))}を作った${mn?`。${mn}と一緒に食べた`:''}`,2));
+    once('b',6.5,9.5,()=>add(ts,`朝ごはんに${mealPlan('b').list}を食べた${mn&&Math.random()<.6?`（${mn}も一緒）`:''}`,2));
+    once('l',11.5,13.5,()=>add(ts,`お昼は${mealPlan('l').list}`,2));
+    once('d',18,20.5,()=>add(ts,`夕ごはんに${mealPlan('d').list}を作った${mn?`。${mn}と一緒に食べた`:''}`,2));
+    once('oy',14.5,16.5,()=>{if(Math.random()<.6){const tt=teaTime();add(ts,`おやつに${tt.sweet}と${tt.drink}`,1);}});
     once('bt',19.5,22.5,()=>add(ts,'お風呂に入った',1));
     if(h>=20&&h<23)once('dr',20,23,()=>{if(Math.random()<.45){const dd=pick(DRINKS.filter(x=>drinkPref(x)!=='no'));const sc=rateDrink(dd).score;S.notes=S.notes||{};const o=S.notes[dd.n]||{s:0,n:0};o.s=Math.max(o.s,sc);o.n++;o.last=sc;S.notes[dd.n]=o;add(ts,`${dd.n}を飲んだ（${sc}点）${mn?`。${mn}と乾杯`:''}`,2);}});
     if(!visited&&h>=10&&h<18&&Math.random()<.012){visited=true;const fr=Object.values(S.friends||{});add(ts,fr.length?`友達の${pick(fr).name}が遊びに来た`:'となりの浮遊地から友達が遊びに来た',3);}
     const r=Math.random();
-    if(r<.07){const p=progAt(ts);add(ts,p?`テレビで${p.ch}の『${short(p.title,22)}』を見た`:'テレビを見てのんびり',1);}
+    if(r<.07){const p=progAt(ts);add(ts,p?`テレビで${p.ch}の『${p.title}』を見た`:'テレビを見てのんびり',1);}
     else if(r<.11&&ENV.news.length){const it=pick(ENV.news);add(ts,`ニュースで『${short(it.title,26)}』を知った`,1);}
     else if(r<.14&&h>=8&&h<17)add(ts,pick(['庭の花に水をあげた','庭をおさんぽした','ベンチでひなたぼっこした','望遠鏡で下の街をのぞいた']),1);
     else if(r<.17)add(ts,pick(['本を読んだ','ラジオを聴いた','テレビゲームで遊んだ','お茶をいれてひと休み','部屋のそうじをした','洗濯をした','ストレッチをした']),1);
@@ -4214,7 +4309,7 @@ function update(dt){
   if(fadeT>0)fadeT-=dt;
   moveTick(dt);if(fadeT<=.2)runner(dt);
   if(!dragPan(dt)){const p=charPos(),tx=p.cx,ty=p.by-18;if(!cam.init){cam.x=tx;cam.y=ty;cam.init=true;}const k=1-Math.exp(-dt*5);cam.x+=(tx-cam.x)*k;cam.y+=(ty-cam.y)*k;}
-  needsTick(dt);droneTick(dt);visitTick(dt);mateTick(dt);if(M&&M.drink&&M.sit)M.drinkLv=Math.max(.12,(M.drinkLv||1)-dt*.012);yardTick(dt);shopTick(dt);partTick(dt);msgTick(dt);talkTick(dt);
+  needsTick(dt);droneTick(dt);visitTick(dt);mateTick(dt);rvTick(dt);if(M&&M.drink&&M.sit)M.drinkLv=Math.max(.12,(M.drinkLv||1)-dt*.012);yardTick(dt);shopTick(dt);partTick(dt);msgTick(dt);talkTick(dt);
   const k=wKind();if(k==='snow')snowCover=Math.min(.7,snowCover+dt/90);else snowCover=Math.max(0,snowCover-dt/240);
   if(k==='thunder'){nextFlash-=dt;if(nextFlash<=0){flashT=.18;nextFlash=rnd(6,16);}}if(flashT>0)flashT-=dt;
   hudT-=dt;if(hudT<=0){hudT=1;updateHUD();updateRoom();wxWatch();if(!$('sheet').hidden)renderSheet();}
