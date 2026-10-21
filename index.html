@@ -1,4 +1,4 @@
-<title>浮遊地ぐらし</title>
+<title>浮遊島ぐらし</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -125,6 +125,7 @@ button.primary{background:var(--lantern);color:#2a200b;border-color:transparent}
 .species{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
 .sp{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;border-radius:12px}
 .sp canvas{width:72px;height:72px}
+.hpick{display:flex;align-items:center;gap:10px;margin:10px 0 4px}.hpick canvas{width:180px;height:96px;background:rgba(0,0,0,.18);border-radius:12px;flex:none}.hpick .col{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}.hpick .col button{font-size:12px;padding:7px 6px}
 .species.rn{grid-template-columns:repeat(6,1fr);gap:4px;margin:0 0 10px}.species.rn .sp{padding:4px 0;font-size:9px}.species.rn .sp canvas{width:44px;height:44px}
 .sp[aria-pressed="true"]{background:#3a4796;box-shadow:inset 0 0 0 2px var(--lantern)}
 .namerow{display:flex;gap:8px;margin-top:8px}
@@ -160,7 +161,7 @@ button.chip{font-weight:400;min-height:0;color:var(--ink)}button.chip.fav{backgr
 
 <div class="app">
   <div class="stage">
-    <canvas id="cv" width="384" height="600" tabindex="0" aria-label="浮遊地のようす。キャラクターをダブルタップすると「メニュー」が開きます"></canvas>
+    <canvas id="cv" width="384" height="600" tabindex="0" aria-label="浮遊島のようす。キャラクターをダブルタップすると「メニュー」が開きます"></canvas>
     <div class="glass hud" id="hud">
       <div class="hgrid">
         <div class="hname" id="hName"></div>
@@ -190,19 +191,19 @@ button.chip{font-weight:400;min-height:0;color:var(--ink)}button.chip.fav{backgr
     <section class="tp" data-p="home" hidden><div id="homeBody"></div></section>
     <section class="tp" data-p="nm" hidden>
     <div class="field"><label for="rnName">なまえ</label><input type="text" id="rnName" maxlength="10" autocomplete="off"><button id="rnNew">おまかせ</button></div>
-    <div class="species rn" id="rnGrid"></div>
-    <div class="row2"><button id="rnLook" type="button" hidden>見た目を変える</button><button id="rnSave" class="primary" hidden>この内容に変更する</button></div><p class="hint">変更は下の「決定」で反映されます。</p>
+    <div class="hpick"><canvas id="rnPrev" width="180" height="96"></canvas><div class="col"><button id="rnLook" type="button">見た目を変える</button></div></div>
+    <div class="row2"><button id="rnSave" class="primary" hidden>この内容に変更する</button></div><p class="hint">変更は下の「決定」で反映されます。</p>
     </section>
     <section class="tp" data-p="mate" hidden>
       <div id="mateNone"><p class="hint">同居人を1人迎えられます。迎えると、同居人専用のベッド（色ちがい）も届きます。同居人は自分で暮らしながら、いっしょにごはんを食べたり、飲んだり、おしゃべりしたりします。</p>
       <div class="field"><label for="mtName">名前</label><input type="text" id="mtName" maxlength="10" autocomplete="off"><button id="mtNew" type="button">おまかせ</button></div>
-      <div class="species rn" id="mtGrid"></div>
-      <div class="row2"><button id="mtLookB" type="button" hidden>見た目を決める</button><button id="mtAdd" class="primary" type="button">同居人を迎える</button></div></div>
+      <div class="hpick"><canvas id="mtPrevN" width="180" height="96"></canvas><div class="col"><div class="seg"><button type="button" id="mtGm">男性</button><button type="button" id="mtGf">女性</button></div><button id="mtLookB" type="button">見た目を変更</button><button id="mtRand" type="button">おまかせ</button></div></div>
+      <div class="row2"><button id="mtAdd" class="primary" type="button">同居人を迎える</button></div></div>
       <div id="mateHas" hidden><div class="mtCard"><canvas id="mtPrev" width="80" height="80"></canvas><p id="mtInfo"></p></div>
       <div class="field"><label for="mtRename">名前</label><input type="text" id="mtRename" maxlength="10" autocomplete="off"><button id="mtRenameB" type="button" hidden>変更</button></div>
       <h3>暮らし方の傾向</h3><div class="prefs" id="mtTend"></div>
       <h3>名前の表示</h3><div class="tagGrid" id="mtTags"></div>
-      <div class="row2"><button id="mtLook2" type="button" hidden>見た目を変える</button><button id="mtBye" class="danger" type="button">お別れする</button></div></div>
+      <div class="row2"><button id="mtLook2" type="button">見た目を変える</button><button id="mtBye" class="danger" type="button">お別れする</button></div></div>
     </section>
     <section class="tp" data-p="loc" hidden>
     <p class="hint" id="locStatus"></p>
@@ -259,7 +260,7 @@ button.chip{font-weight:400;min-height:0;color:var(--ink)}button.chip.fav{backgr
 
 <div class="overlay center" id="title" hidden>
   <div class="card titlecard" role="dialog" aria-labelledby="ttl">
-    <h1 class="logo" id="ttl">浮遊地ぐらし</h1>
+    <h1 class="logo" id="ttl">浮遊島ぐらし</h1>
     <p class="note">あなたの街の上空に浮かぶ小さな島で、住人がひとりで暮らしています。</p>
     <div class="savebox" id="saveBox" hidden><canvas id="saveCv" width="72" height="72"></canvas><div><b id="saveName"></b><span id="saveInfo"></span></div></div>
     <div class="tbtns"><button class="primary" id="bCont">続きからはじめる</button><button id="bNew">はじめから</button></div>
@@ -268,16 +269,15 @@ button.chip{font-weight:400;min-height:0;color:var(--ink)}button.chip.fav{backgr
 
 <div class="overlay center" id="setup" hidden>
   <div class="card" role="dialog" aria-labelledby="setupTitle">
-    <h2 id="setupTitle">浮遊地に、だれが住む？</h2>
-    <p class="note" style="text-align:left">あなたの街の上空に浮かぶ小さな島。住人を選んで、名前をつけてください。</p>
-    <div class="species" id="spGrid"></div>
-    <p class="note" id="spDesc" style="margin-top:8px;min-height:2.6em"></p>
+    <h2 id="setupTitle">浮遊島に、だれが住む？</h2>
+    <p class="note" style="text-align:left">あなたの街の上空に浮かぶ小さな島。ここに住む人の見た目と名前を決めてください。ほかの浮遊島からは、いろいろな住人が遊びに来ます。</p>
+    <div class="hpick"><canvas id="spPrev" width="180" height="96"></canvas><div class="col"><div class="seg" id="spG"><button type="button" id="spGm">男性</button><button type="button" id="spGf">女性</button></div><button type="button" id="spLook">見た目を変更</button><button type="button" id="spRand">おまかせ</button></div></div>
     <h3>なまえ</h3>
     <div class="namerow"><input id="nameIn" type="text" maxlength="10" aria-label="なまえ"><button id="bNewName">新しい名前</button></div>
     <h3>島が浮かぶ地域（任意）</h3>
     <div class="namerow"><input id="spLocQ" type="text" placeholder="例：吉祥寺、札幌市中央区" aria-label="地域"><button id="spLocB">さがす</button></div>
     <p class="note" id="spLocNow" style="text-align:left;margin:4px 0"></p><div class="chips" id="spLocRes"></div>
-    <button class="primary start" id="bStart">この子と暮らす</button>
+    <button class="primary start" id="bStart">この人と暮らす</button>
   </div>
 </div>
 
@@ -415,7 +415,7 @@ const FT={
   bathmat:F('バスマット',2,1,'floor',['bath'],{keepClear:1,draw:dBathmat}),
   clock:F('掛け時計',1,1,'wall',['liv','kit','bed'],{draw:wClock}),
   landscape:F('風景画',1,1,'wall',['liv','bed'],{draw:wLandscape}),
-  islandart:F('浮遊地の絵',1,1,'wall',['liv','bed'],{draw:wIsland}),
+  islandart:F('浮遊島の絵',1,1,'wall',['liv','bed'],{draw:wIsland}),
   portrait:F('自画像',1,1,'wall',['liv','bed'],{draw:wPortrait}),
   poster:F('ポスター',1,1,'wall',['bed','liv'],{draw:wPoster}),
   photos:F('思い出の写真',1,1,'wall',['liv','bed'],{draw:wPhotos}),
@@ -571,8 +571,8 @@ function placeCheck(){if(!S||LOC.manual||ENV.lat==null)return;if(ENV.locSrc!=='g
   const kd=km>=10?`${Math.round(km)}km`:`${km.toFixed(1)}km`;
   let m;
   if(old)m=prev.pref!==cur.pref?`前は${prev.city}にいたけど、いまは${cur.pref}の${cur.ps}の上だって！${kd}も移動してきたんだ`:prev.city!==cur.city?`この前は${prev.city}だったけど、今日は${cur.city}の上にいるみたい`:`この前とちょっと場所がちがうね。いまは${cur.area}のあたりだよ`;
-  else m=prev.pref!==cur.pref?pick([`わっ、${prev.pref}を出て${cur.pref}まで来ちゃった！いまは${cur.ps}の上だよ（約${kd}）`,`浮遊地ごと${cur.pref}に移動したみたい！${cur.ps}の空だよ`]):
-    prev.city!==cur.city?pick([`浮遊地がふわ〜っと流されて、${prev.city}から${cur.city}に来たよ`,`あれ、景色が変わった？いまは${cur.city}の上にいるみたい（約${kd}）`]):
+  else m=prev.pref!==cur.pref?pick([`わっ、${prev.pref}を出て${cur.pref}まで来ちゃった！いまは${cur.ps}の上だよ（約${kd}）`,`浮遊島ごと${cur.pref}に移動したみたい！${cur.ps}の空だよ`]):
+    prev.city!==cur.city?pick([`浮遊島がふわ〜っと流されて、${prev.city}から${cur.city}に来たよ`,`あれ、景色が変わった？いまは${cur.city}の上にいるみたい（約${kd}）`]):
     pick([`ちょっと流されたかな？いまは${cur.area}のあたりだよ`,`${cur.area}のほうに少し移動したみたい`]);
   queueSay(m);if(km>=3)fetchNews&&fetchNews();save&&save();}
 function geoPoll(){if(LOC.manual||document.hidden)return;if(Date.now()-geoAt<4*60e3)return;geoAt=Date.now();getGeo(false,1);}
@@ -1051,7 +1051,7 @@ function talkLine(){
   const topics=[];
   const add=(w,f)=>topics.push([w,f]);
   add(2,()=>{const tm=fmtH(h);
-    if(h>=5&&h<9)return pick([`おはよう！もう${tm}だね`,'朝の空気って、浮遊地だと特においしいんだ',`${tm}。今日はなにしようかな`,'朝日がまぶしい！','顔を洗ってシャキッとしよう','朝ごはん、何にしようかな','今日もいい一日になりますように','鳥たちも起きてるかな','朝の光で部屋が明るい','朝のストレッチ、気持ちいい','ふあ〜、まだちょっと眠い','早起きは三文の得、だね','窓を開けて空気を入れかえよう','朝の雲、ピンク色だった']);
+    if(h>=5&&h<9)return pick([`おはよう！もう${tm}だね`,'朝の空気って、浮遊島だと特においしいんだ',`${tm}。今日はなにしようかな`,'朝日がまぶしい！','顔を洗ってシャキッとしよう','朝ごはん、何にしようかな','今日もいい一日になりますように','鳥たちも起きてるかな','朝の光で部屋が明るい','朝のストレッチ、気持ちいい','ふあ〜、まだちょっと眠い','早起きは三文の得、だね','窓を開けて空気を入れかえよう','朝の雲、ピンク色だった']);
     if(h>=9&&h<11)return pick(['午前中はなんだかはかどる','さて、何から始めようかな','洗濯日和かな？','お茶でもいれようかな','午前のうちに掃除しちゃおう','いい時間だね','ちょっと本でも読もうかな']);
     if(h>=11&&h<13.5)return pick(['そろそろお昼だね',`${tm}、おなかの時計が鳴りそう`,'お昼ごはん、何にしよう','お昼の日差しはあったかい','ランチタイムだ！','午前中、おつかれさま','お昼休みって大事']);
     if(h>=13.5&&h<14.5)return pick(['お昼すぎって、ぽかぽかする','ちょっとうとうとしちゃう','午後もがんばろう','食後のコーヒー飲みたい']);
@@ -1060,10 +1060,10 @@ function talkLine(){
     if(h>=19&&h<22.5)return pick([`夜の${pl}は灯りがきれいだろうな`,`${tm}。今日もおつかれさま`,'夜はのんびりするのがいちばん','今日の夜空はどうかな','お風呂、何時に入ろう','夜のテレビ、何かあるかな','夜は静かでいいね','明日の準備でもしようかな']);
     if(h>=22.5||h<5)return pick([`もう${tm}…夜ふかしはほどほどにね`,'しーん…みんな寝てるかな','夜空の星、きれい','そろそろ寝る支度しよう','夜中のおなかすき、危険…','月が明るいね']);
     return pick([`いまは${tm}だよ`,'のんびりした時間だなあ']);});
-  add(2,()=>{const nt=daylight()<.3;return pick({clear:nt?['星がよく見える夜だね','雲がない夜は、月が近く感じる','流れ星、見えないかな','夜空が深い青','月の光で庭が明るい','星座、いくつわかるかな','満天の星だ！','夜の空気、すんでるね','星を数えてたら眠くなりそう','今夜は月がきれい']:['いい天気！ここは太陽が近いからまぶしいや','晴れてると、浮遊地の影が下の雲に映るんだ','洗濯物がよく乾きそう','青空が広い！','日向ぼっこしたくなる','雲ひとつない青空','お日さまがぽかぽか','空がどこまでも続いてる','晴れの日は気分も晴れる','日差しが部屋の奥まで届いてる'],
+  add(2,()=>{const nt=daylight()<.3;return pick({clear:nt?['星がよく見える夜だね','雲がない夜は、月が近く感じる','流れ星、見えないかな','夜空が深い青','月の光で庭が明るい','星座、いくつわかるかな','満天の星だ！','夜の空気、すんでるね','星を数えてたら眠くなりそう','今夜は月がきれい']:['いい天気！ここは太陽が近いからまぶしいや','晴れてると、浮遊島の影が下の雲に映るんだ','洗濯物がよく乾きそう','青空が広い！','日向ぼっこしたくなる','雲ひとつない青空','お日さまがぽかぽか','空がどこまでも続いてる','晴れの日は気分も晴れる','日差しが部屋の奥まで届いてる'],
     cloudy:['くもってるね。上も下も雲だらけ','空が真っ白','雲の色がグレーだね','くもりの日は落ちつく','雨、降るかな？','どんよりしてるね','雲の流れがはやい','くもりでも明るいね','太陽、どこに隠れてるのかな','くもりの日は読書日和'],
     rain:['雨だ…今日は家でのんびりしよう','屋根に当たる雨の音、けっこう好き','雨の日はおうち時間','しとしと降ってるね','傘、どこだっけ','雨のにおいがする','雨の日は紅茶がおいしい','庭の花、水を喜んでるかな','雨粒が窓をつたってる','雨だと眠くなるね'],
-    snow:['雪だ！浮遊地が真っ白になっちゃう','雪の日は音が静かだね','雪だるま作りたい','手がかじかむ','雪景色、きれい','ホットココア飲みたい','雪がしんしん降ってる','足あとをつけたくなる','こたつから出られない','雪の結晶、見てみたい'],
+    snow:['雪だ！浮遊島が真っ白になっちゃう','雪の日は音が静かだね','雪だるま作りたい','手がかじかむ','雪景色、きれい','ホットココア飲みたい','雪がしんしん降ってる','足あとをつけたくなる','こたつから出られない','雪の結晶、見てみたい'],
     thunder:['かみなり…ちょっとこわい','ゴロゴロいってる。家にいよう','ピカッて光った！','停電しないといいな','雷の音、大きい…','おへそ隠さなきゃ','嵐が過ぎるのを待とう','窓から離れておこう'],
     fog:['霧で島のはしっこが見えないや','ふわふわ、まっしろ','霧の中みたい','どこまでが空かわからない','霧の朝ってふしぎ','視界が真っ白','しっとりした空気']}[k]);});
   add(3,()=>pick(IDLE_MUSE));
@@ -1717,7 +1717,7 @@ function RR(c,col,x,y,w,h,r){c.fillStyle=col;c.beginPath();if(c.roundRect)c.roun
 function PG(c,col,p){c.fillStyle=col;c.beginPath();c.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)c.lineTo(p[i],p[i+1]);c.closePath();c.fill();}
 function LN(c,col,w,p){c.strokeStyle=col;c.lineWidth=w;c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)c.lineTo(p[i],p[i+1]);c.stroke();}
 function face(c,x,y,o){o=o||{};const NOWs=performance.now()/1000,s=o.s||1,sep=(o.sep||3.2)*s,ec=o.eye||'#2a2230';
-  const blink=o.sleep||(!o.noBlink&&((NOWs+(o.seed||0))%4.2)<.13);
+  const blink=o.sleep||(liveDraw&&!o.noBlink&&((NOWs+(o.seed||0))%4.2)<.13);
   if(o.blush!==false)for(const b of[x-sep-2.4*s,x+sep+2.4*s])E(c,o.blush||'rgba(240,120,140,.38)',b,y+2.8*s,1.7*s,1.05*s);
   for(const e of[x-sep,x+sep]){
     if(blink){c.strokeStyle=ec;c.lineWidth=.8*s;c.lineCap='round';c.beginPath();c.arc(e,y-.4*s,1.3*s,.15*Math.PI,.85*Math.PI);c.stroke();continue;}
@@ -1827,6 +1827,7 @@ const HAIRC=[['黒・茶',['#1a1614','#2e2420','#4a3226','#6b4a32','#8a6040','#a
   ['ピンク・紫',['#f0a0bc','#d06a9a','#9a62c8','#5e3a92']],['青・緑',['#2e4ea8','#5aa8dc','#2f8a6a','#8ccc8c']],['グレー・白',['#7a7a84','#b8b8c2','#ececf2']]];
 const HAIRS=HAIRC.flatMap(g=>g[1]);
 const BODIES=[['s','細め'],['n','標準'],['l','太め']];
+const firstLook=g=>({g:g||'m',face:0,skin:0,hair:0,hc:0,body:'s'});
 // face presets: [eye, brow, mouth, extra]
 const FACES={m:[['round','thin','smile',''],['dot','thick','smile',''],['big','thin','open',''],['narrow','thick','flat',''],['smile','thin','grin',''],['tare','thin','small','blush'],['tsuri','angry','smirk',''],['round','thick','cat',''],['sleepy','thin','flat',''],['glasses','thin','smile',''],
    ['sqglasses','thick','flat',''],['round','thin','smile','freckles'],['dot','thin','open','stubble'],['narrow','thin','smile','mustache'],['wink','thin','grin',''],['big','worried','small',''],['tsuri','thick','grin','mole'],['round','none','smile','blush'],['shades','thick','smirk',''],['tare','thick','smile','stubble']],
@@ -1927,7 +1928,7 @@ function humanHairFront(c,L,d,t){const H=hairDesc(L),P=hPal(L),ex=H.ex,vol=H.vol
   if(ex==='dreads'){const xs=d==='up'?[-6,-3.6,-1.2,1.2,3.6,6]:d==='right'?[-6.4,-4.4,-2.4]:[-7.6,-6,6,7.6];for(const x of xs){const len=8+Math.abs(x)*.5;for(let i=0;i<len/1.6;i++){E(c,P.dk,x+.2,HCY-1+i*1.6+.2,1,1);E(c,i%2?P.col:P.lt,x,HCY-1+i*1.6,.95,.95);}}}
   if(ex==='slick'&&d!=='up'){c.strokeStyle=P.hl;c.globalAlpha=.6;c.lineWidth=.5;for(let i=-2;i<=2;i++){c.beginPath();c.moveTo(i*2.2+(d==='right'?2:0),HCY-6.4);c.quadraticCurveTo(i*2.6,HCY-r,i*1.4-(d==='right'?3:0),HCY-r-.2);c.stroke();}c.globalAlpha=1;}}
 function humanFace(c,L,d,o){const F=FACES[L.g==='f'?'f':'m'][L.face%20],[eye,brow,mouth,ex]=F,ink='#2a2026',sk=SKINS[L.skin%SKINS.length];
-  const sleep=o.sleep,T0=performance.now()/1000,blink=!sleep&&(T0%4.2)<.12;
+  const sleep=o.sleep,T0=performance.now()/1000,blink=!sleep&&liveDraw&&(T0%4.2)<.12;
   const side=d==='right',eyes=side?[4.2]:[-3.1,3.1],ey=HCY+.6;
   if(ex==='blush')for(const x of(side?[4.6]:[-4.6,4.6]))E(c,'rgba(240,120,140,.35)',x,ey+2.6,1.6,.9);
   if(ex==='freckles')for(const x of(side?[4.6]:[-4.4,4.4]))for(let i=0;i<3;i++)E(c,'rgba(150,90,60,.6)',x-1+i,ey+2.2+(i%2)*.6,.25,.25);
@@ -3465,7 +3466,9 @@ const houseLit=()=>C.scene==='in'&&!C.sleeping&&daylight()<.6;
 /* ========== render ========== */
 function charOpts(){return{look:S.look,tipsy:!!(S.tipsyUntil&&Date.now()<S.tipsyUntil&&!C.sleeping),level:S.needs.energy/100,sleepy:C.sleeping,sp:S.species,outfit:S.outfit,dir:C.dir,moving:C.moving,frame:C.frame,ph:C.walkPh,pose:C.pose,holding:C.holding,scale:1,seed:S.born%7,floor:C.snap&&C.snap.floor,blanket:VAR.bed[((S.layout.bed&&S.layout.bed.v)||0)%4]};}
 function charPos(){if(C.snap)return{cx:C.snap.px,by:C.snap.py};return{cx:C.px+T/2,by:C.py+T-2};}
-function render(){
+let liveDraw=false;
+function render(){liveDraw=true;try{render0();}finally{liveDraw=false;}}
+function render0(){
   const t=performance.now()/1000;
   g.setTransform(DPR,0,0,DPR,0,0);g.clearRect(0,0,W,H);drawSky(t);
   worldBegin();
@@ -3558,7 +3561,7 @@ function updateHUD(){
   const t=tempNow(),hu=humNow();$('hTemp').textContent=(t==null?'--':Math.round(t*10)/10)+'℃';$('hHum').textContent=(hu==null?'--':Math.round(hu))+'%';
   const days=Math.floor((Date.now()-S.born)/86400e3)+1;
   if($('hName').textContent!==S.name)$('hName').textContent=S.name;}
-function updateRoom(){const r=C.scene==='out'?'浮遊地':(ROOM_NAME[roomAt(C.tx,C.ty)]||'ろうか');const el=$('room');if(el.textContent!==r)el.textContent=r;}
+function updateRoom(){const r=C.scene==='out'?'浮遊島':(ROOM_NAME[roomAt(C.tx,C.ty)]||'ろうか');const el=$('room');if(el.textContent!==r)el.textContent=r;}
 
 /* ========== sheet ========== */
 function renderSheet(){
@@ -3841,8 +3844,8 @@ function meetSpot(){const e=OUT.entry,c=[];
   return c.length?pick(c):null;}
 function newVisitor(){S.friends=S.friends||{};const fr=Object.values(S.friends).filter(f=>f.sp!==S.species||f.sp==='human');
   if(fr.length&&Math.random()<.55)return{...pick(fr),again:true};
-  const sps=Object.keys(SPEC).filter(k=>k!==S.species&&k!=='human'),sp=Math.random()<.4||!sps.length?'human':pick(sps);let name=newName(sp);if(name===S.name)name=newName(sp);
-  const pal=PAL[season()];return{sp,name,col:pick(pal),bcol:pick(NEUTRAL),pat:pick(['plain','stripe','dot','check']),n:0,again:false};}
+  const sps=Object.keys(SPEC).filter(k=>k!==S.species&&k!=='human'),sp=Math.random()<.4||!sps.length?'human':pick(sps);const look=sp==='human'?randomLook():null;let name=sp==='human'?humanName(look.g):newName(sp);if(name===S.name)name=sp==='human'?humanName(look.g):newName(sp);
+  const pal=PAL[season()];return{sp,look,name,col:pick(pal),bcol:pick(NEUTRAL),pat:pick(['plain','stripe','dot','check']),n:0,again:false};}
 function visOutfit(f){const d=dayClothes(),og=outerGear();return{top:{k:d.top.k==='pajama'?'tshirt':d.top.k,c:f.col,p:f.pat},bottom:{k:d.bottom.k,c:f.bcol},shoes:og.shoes,hat:Math.random()<.4?og.hat:{k:'none',c:'白'},over:og.over};}
 function vPlace(x,y){V.tx=x;V.ty=y;V.px=x*T;V.py=y*T;V.path=[];}
 function spawnVisitor(m){const f=newVisitor();if(f.sp==='human'&&!f.look)f.look=randomLook();V={...f,scene:'out',phase:'arrive',dir:'left',seed:Math.floor(Math.random()*7),outfit:visOutfit(f),bob:0,path:[],moving:false,ph:0,goal:null,sit:null,ride:null};vPlace(m.x+2,m.y);
@@ -3906,7 +3909,7 @@ function talkStep(getL){let cv2=null;return[FN(()=>{cv2={L:getL()||[],i:0,t:0};}
 function convoParts(){const v=V,me=S.name,t=tempNow(),k=wKind(),pl=ENV.area||ENV.city||ENV.place||'このへん';
   const vt=()=>'';
   const greet=v.again?[['v',vt()+pick([`${me}、また遊びに来ちゃった！`,`やっほー${me}！ドローンに乗って来たよ`])],['me',pick([`${v.name}！いらっしゃい`,`わあ、${v.name}だ！元気だった？`])]]
-    :[['v',`はじめまして！となりの浮遊地に住んでる${SPEC[v.sp].kind}の${v.name}です`],['me',`はじめまして、${me}だよ！人が乗れるドローンなんてすごい！`]];
+    :[['v',v.sp==='human'?`はじめまして！となりの浮遊島に住んでる${v.name}です`:`はじめまして！となりの浮遊島に住んでる${SPEC[v.sp].kind}の${v.name}です`],['me',`はじめまして、${me}だよ！人が乗れるドローンなんてすごい！`]];
   const T2=[];
   T2.push(()=>[['v',{clear:`今日は${pl}の上、よく晴れてるね`,cloudy:'くもり空も、ふわふわしてていいよね',fog:'霧の中を飛ぶの、ちょっとドキドキしたよ',snow:'雪の中を飛んできたよ、さむい〜',rain:'雨がやんでよかった',thunder:'かみなりが鳴らないうちに来れてよかった'}[k]||'いい空だね'],
     ['me',t==null?'ほんとだね':t>=27?`${Math.round(t)}℃もあって暑いけどね`:t<=10?`${Math.round(t)}℃でひんやりするけどね`:`${Math.round(t)}℃くらいで気持ちいいよね`]]);
@@ -4219,7 +4222,7 @@ function awayEvents(t0,t1){const ev=[],done={},seenTx=new Set(),add=(ts,tx,imp)=
     once('oy',14.5,16.5,()=>{if(Math.random()<.6){const tt=teaTime();add(ts,`おやつに${tt.sweet}と${tt.drink}`,1);}});
     once('bt',19.5,22.5,()=>add(ts,'お風呂に入った',1));
     if(h>=20&&h<23)once('dr',20,23,()=>{if(Math.random()<.45){const dd=pick(DRINKS.filter(x=>drinkPref(x)!=='no'));const sc=rateDrink(dd).score;S.notes=S.notes||{};const o=S.notes[dd.n]||{s:0,n:0};o.s=Math.max(o.s,sc);o.n++;o.last=sc;S.notes[dd.n]=o;add(ts,`${dd.n}を飲んだ（${sc}点）${mn?`。${mn}と乾杯`:''}`,2);}});
-    if(!visited&&h>=10&&h<18&&Math.random()<.012){visited=true;const fr=Object.values(S.friends||{});add(ts,fr.length?`友達の${pick(fr).name}が遊びに来た`:'となりの浮遊地から友達が遊びに来た',3);}
+    if(!visited&&h>=10&&h<18&&Math.random()<.012){visited=true;const fr=Object.values(S.friends||{});add(ts,fr.length?`友達の${pick(fr).name}が遊びに来た`:'となりの浮遊島から友達が遊びに来た',3);}
     const r=Math.random();
     if(r<.07){const p=progAt(ts);add(ts,p?`テレビで${p.ch}の『${p.title}』を見た`:'テレビを見てのんびり',1);}
     else if(r<.11&&ENV.news.length){const it=pick(ENV.news);add(ts,`ニュースで『${short(it.title,26)}』を知った`,1);}
@@ -4586,23 +4589,24 @@ cv.addEventListener('keydown',e=>{if(!S)return;if(e.key==='Enter'){e.preventDefa
 
 /* ========== setup ========== */
 let chosen='cloud',usedNames=new Set();
-function newName(sp,gd){if(sp==='human'){const L=NAMES.human.b,g2=gd||(lookDraft&&lookDraft.g)||(S&&S.look&&S.look.g)||'m',pool=g2==='f'?L.slice(12):L.slice(0,12);for(let i=0;i<30;i++){const n=pick(pool);if(!usedNames.has(n)){usedNames.add(n);return n;}}return pick(pool);}const N=NAMES[sp];for(let i=0;i<30;i++){const n=pick(N.b)+pick(N.s);if(!usedNames.has(n)){usedNames.add(n);return n;}}return pick(N.b);}
-function openSetup(){if(typeof spLocShow==="function")spLocShow();
-  const grid=$('spGrid');grid.innerHTML='';
-  for(const sp of Object.keys(SPEC)){const b=document.createElement('button');b.className='sp';b.type='button';b.setAttribute('aria-pressed',sp===chosen);
-    const c=document.createElement('canvas');const dpr=Math.min(3,devicePixelRatio||1);c.width=64*dpr;c.height=64*dpr;const cx=c.getContext('2d');cx.scale(dpr,dpr);
-    c.width=72*dpr;c.height=72*dpr;cx.setTransform(dpr,0,0,dpr,0,0);drawChar(cx,36,66,{sp,outfit:simpleOutfitFull(),dir:'down',pose:'stand',scale:1.5,seed:1});
-    const l=document.createElement('span');l.textContent=SPEC[sp].n;b.append(c,l);
-    b.onclick=()=>{chosen=sp;[...grid.children].forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');$('nameIn').value=autoName=newName(sp);$('spDesc').textContent=SPEC[sp].desc;};
-    grid.append(b);}
-  $('nameIn').value=autoName=newName(chosen);$('spDesc').textContent=SPEC[chosen].desc;$('setup').hidden=false;
-}
+const HN={m:['ハルト','ソウタ','ユウト','レン','ミナト','アオイ','リク','カイト','タクミ','ケンタ','シュン','ダイキ','ハヤト','コウキ','ユウマ','ソラ','アキラ','タイチ','ナオキ','リョウ','ショウ','ヒロ','ケイ','ジン','トモヤ','カズマ','イツキ','ユウキ','セナ','タケル','ハルキ','ヨウタ','マサト','ツバサ','リュウ','ゲン'],
+  f:['ハナ','ユイ','ミオ','サクラ','リン','アカリ','ヒナ','メイ','ミユ','アヤカ','ナナ','カエデ','ユナ','ミサキ','ツムギ','コハル','シオリ','マコ','アンナ','ノア','チカ','エマ','ミク','サヤ','ナツキ','ホノカ','ユズ','モモ','カナ','リコ','ミズキ','ハルカ','スズ','アイ','マユ','ヒヨリ']};
+function humanName(g){const pool=HN[g==='f'?'f':'m'];for(let i=0;i<30;i++){const n=pick(pool);if(!usedNames.has(n)&&!(S&&(n===S.name||(S.mate&&n===S.mate.name)))){usedNames.add(n);return n;}}return pick(pool);}
+function newName(sp,gd){if(sp==='human'){const g2=gd||(lookDraft&&lookDraft.g)||(S&&S.look&&S.look.g)||'m';return humanName(g2);}const N=NAMES[sp];for(let i=0;i<30;i++){const n=pick(N.b)+pick(N.s);if(!usedNames.has(n)){usedNames.add(n);return n;}}return pick(N.b);}
+function humPrev(cv,sp,look,outfit){const dpr=Math.min(3,devicePixelRatio||1);cv.width=180*dpr;cv.height=96*dpr;const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,180,96);
+  let of=outfit;if(!of){of=simpleOutfitFull();if(look&&look.g==='f')of.top={k:'blouse',c:'ピンク',p:'plain'},of.bottom={k:'skirt',c:'紺'};}
+  [['down',40],['right',90],['up',140]].forEach(([d,x])=>drawChar(c,x,90,{sp,look:sp==='human'?look:null,outfit:of,dir:d,pose:'stand',scale:1.55,seed:1}));}
+let setupLook=null;
+function setupDraw(){humPrev($('spPrev'),'human',setupLook);$('spGm').setAttribute('aria-pressed',setupLook.g==='m');$('spGf').setAttribute('aria-pressed',setupLook.g==='f');}
+function setupRename(){const cur=$('nameIn').value.trim();if(!cur||cur===autoName)$('nameIn').value=autoName=humanName(setupLook.g);}
+function openSetup(){if(typeof spLocShow==="function")spLocShow();chosen='human';
+  if(!setupLook)setupLook=firstLook('m');setupDraw();$('nameIn').value=autoName=humanName(setupLook.g);$('setup').hidden=false;}
+$('spGm').onclick=()=>{if(setupLook.g!=='m'){setupLook.g='m';setupDraw();setupRename();}};
+$('spGf').onclick=()=>{if(setupLook.g!=='f'){setupLook.g='f';setupDraw();setupRename();}};
+$('spRand').onclick=()=>{setupLook=randomLook();setupDraw();setupRename();};
+$('spLook').onclick=()=>openLook(setupLook,lk=>{const gc=lk.g!==setupLook.g;setupLook=lk;setupDraw();if(gc)setupRename();});
 let rnSel=null;
-function renderRename(){rnSel=S.species;$('rnLook').hidden=S.species!=='human';$('rnName').value=S.name;const grid=$('rnGrid');grid.innerHTML='';
-  for(const sp of Object.keys(SPEC)){const b=document.createElement('button');b.className='sp';b.type='button';b.setAttribute('aria-pressed',sp===rnSel);
-    const c=document.createElement('canvas');const dpr=Math.min(3,devicePixelRatio||1);c.width=44*dpr;c.height=44*dpr;const cx=c.getContext('2d');cx.setTransform(dpr,0,0,dpr,0,0);
-    drawChar(cx,22,41,{sp,outfit:simpleOutfitFull(),dir:'down',pose:'stand',scale:.95,seed:1});const l=document.createElement('span');l.textContent=SPEC[sp].n;b.append(c,l);
-    b.onclick=()=>{rnSel=sp;[...grid.children].forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');$('rnLook').hidden=sp!=='human';};grid.append(b);}}
+function renderRename(){rnSel=S.species;$('rnName').value=S.name;$('rnLook').textContent=S.species==='human'?'見た目を変える':'人の姿になる';humPrev($('rnPrev'),S.species,S.look||defaultLook(),S.outfit);}
 let mtSel='human',mtLk=null,mtByeArm=false;
 function mtThumb(cv,sp,look){const dpr=Math.min(3,devicePixelRatio||1);cv.width=80*dpr;cv.height=80*dpr;const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,80,80);drawChar(c,40,74,{sp,look,outfit:M?M.outfit:simpleOutfitFull(),dir:'down',pose:'stand',scale:1.6,seed:1});}
 function renderMate(){const has1=!!S.mate;$('mateNone').hidden=has1;$('mateHas').hidden=!has1;mtByeArm=false;$('mtBye').textContent='お別れする';
@@ -4611,16 +4615,15 @@ function renderMate(){const has1=!!S.mate;$('mateNone').hidden=has1;$('mateHas')
     {const td=$('mtTend');const rows=[['out','外出',[['out','アウトドア'],['mid','ふつう'],['in','インドア']]],['near','メインキャラと',[['far','別行動'],['mid','ふつう'],['near','そばにいる']]]];td.innerHTML='';
       for(const[key,lab,opts]of rows){const sp=document.createElement('span');sp.textContent=lab;const seg=document.createElement('div');seg.className='seg';const cur2=S.mate[key]||'mid';
         for(const[v,n]of opts){const b=document.createElement('button');b.type='button';b.textContent=n;b.setAttribute('aria-pressed',v===cur2);b.style.fontSize='11px';b.onclick=()=>{S.mate[key]=v;save();[...seg.children].forEach(x=>x.setAttribute('aria-pressed',x===b));if(M){M.steps=[];M.idle=.5;}};seg.append(b);}td.append(sp,seg);}}
-    mtThumb($('mtPrev'),S.mate.sp,S.mate.look);$('mtInfo').innerHTML=`<b>${esc(S.mate.name)}</b>（${SPEC[S.mate.sp].n}）<br>${M&&M.sleeping?'いまは寝ています':'いっしょに暮らしています'}`;$('mtRename').value=S.mate.name;$('mtLook2').hidden=S.mate.sp!=='human';return;}
-  if(!$('mtName').value)$('mtName').value=newName(mtSel,mtLk&&mtLk.g);const grid=$('mtGrid');grid.innerHTML='';
-  for(const sp of Object.keys(SPEC)){const b=document.createElement('button');b.className='sp';b.type='button';b.setAttribute('aria-pressed',sp===mtSel);
-    const c=document.createElement('canvas');const dpr=Math.min(3,devicePixelRatio||1);c.width=44*dpr;c.height=44*dpr;const cx=c.getContext('2d');cx.setTransform(dpr,0,0,dpr,0,0);
-    drawChar(cx,22,41,{sp,look:sp==='human'?(mtLk||defaultLook('f')):null,outfit:simpleOutfitFull(),dir:'down',pose:'stand',scale:.95,seed:2});const l=document.createElement('span');l.textContent=SPEC[sp].n;b.append(c,l);
-    b.onclick=()=>{mtSel=sp;[...grid.children].forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');$('mtLookB').hidden=sp!=='human';};grid.append(b);}
-  $('mtLookB').hidden=mtSel!=='human';}
-$('mtNew').onclick=()=>{$('mtName').value=newName(mtSel,mtLk&&mtLk.g);};
-$('mtLookB').onclick=()=>openLook(mtLk||randomLook(),lk=>{mtLk=lk;renderMate();});
-$('mtLook2').onclick=()=>openLook(S.mate.look||randomLook(),lk=>{S.mate.look=lk;save();renderMate();});
+    mtThumb($('mtPrev'),S.mate.sp,S.mate.look);$('mtInfo').innerHTML=`<b>${esc(S.mate.name)}</b>${S.mate.sp==='human'?'':'（'+SPEC[S.mate.sp].n+'）'}<br>${M&&M.sleeping?'いまは寝ています':'いっしょに暮らしています'}`;$('mtRename').value=S.mate.name;return;}
+  mtSel='human';if(!mtLk)mtLk=firstLook('m');if(!$('mtName').value)$('mtName').value=mtAuto=humanName(mtLk.g);humPrev($('mtPrevN'),'human',mtLk);$('mtGm').setAttribute('aria-pressed',mtLk.g==='m');$('mtGf').setAttribute('aria-pressed',mtLk.g==='f');}
+let mtAuto='';function mtRename2(){const cur=$('mtName').value.trim();if(!cur||cur===mtAuto)$('mtName').value=mtAuto=humanName(mtLk.g);}
+$('mtGm').onclick=()=>{if(mtLk.g!=='m'){mtLk.g='m';mtRename2();renderMate();}};
+$('mtGf').onclick=()=>{if(mtLk.g!=='f'){mtLk.g='f';mtRename2();renderMate();}};
+$('mtRand').onclick=()=>{mtLk=randomLook();mtRename2();renderMate();};
+$('mtNew').onclick=()=>{$('mtName').value=mtAuto=humanName(mtLk?mtLk.g:'m');};
+$('mtLookB').onclick=()=>openLook(mtLk||randomLook(),lk=>{const gc=mtLk&&lk.g!==mtLk.g;mtLk=lk;if(gc)mtRename2();renderMate();});
+$('mtLook2').onclick=()=>openLook(S.mate.look||randomLook(),lk=>{S.mate.look=lk;S.mate.sp='human';if(M)M.outfit=mateOutfit();save();renderMate();});
 function placeWardrobe2(){if(has('wardrobe2'))return true;let p=placeFor('wardrobe2');if(!p){const cand=shuffle(storable().filter(k=>{const L=S.layout[k];return L&&!L.wall&&!L.on&&['bed','liv'].includes(roomAt(L.x,L.y));}));for(const k of cand.slice(0,4)){const keep=S.layout[k];delete S.layout[k];refreshOcc();p=placeFor('wardrobe2');if(p){S.owned=S.owned.filter(x=>x!==k);S.stored=S.stored||[];S.stored.push({k,at:Date.now()});break;}S.layout[k]=keep;refreshOcc();}}
   if(!p)return false;S.layout.wardrobe2={...p,v:(((S.layout.wardrobe&&S.layout.wardrobe.v)||0)+1)%4};if(!S.owned.includes('wardrobe2'))S.owned.push('wardrobe2');refreshOcc();sparkleAt(posCenter('wardrobe2',S.layout.wardrobe2));return true;}
 function placeBed2(){if(has('bed2'))return true;let p=placeFor('bed2');
@@ -4628,15 +4631,15 @@ function placeBed2(){if(has('bed2'))return true;let p=placeFor('bed2');
     for(const k of cand.slice(0,6)){removed.push([k,S.layout[k]]);delete S.layout[k];refreshOcc();p=placeFor('bed2');if(p)break;}
     if(p){for(const[k]of removed){S.owned=S.owned.filter(x=>x!==k);S.stored=S.stored||[];S.stored.push({k,at:Date.now()});}}else{for(const[k,L]of removed)S.layout[k]=L;refreshOcc();}}
   if(!p)return false;S.layout.bed2={...p,v:(((S.layout.bed&&S.layout.bed.v)||0)+2)%4};if(!S.owned.includes('bed2'))S.owned.push('bed2');refreshOcc();sparkleAt(posCenter('bed2',S.layout.bed2));return true;}
-$('mtAdd').onclick=()=>{const nm=$('mtName').value.trim()||newName(mtSel);if(mtSel==='human'&&!mtLk){openLook(randomLook(),lk=>{mtLk=lk;$('mtAdd').onclick();});return;}
-  S.mate={name:nm,sp:mtSel,look:mtSel==='human'?mtLk:null,since:Date.now()};const bedOk=placeBed2();placeWardrobe2();spawnMate(true);puffAt({x:(M.tx+.5)*T,y:(M.ty+1)*T-6});save();sheetClosed();
+$('mtAdd').onclick=()=>{if(!mtLk)mtLk=randomLook();const nm=$('mtName').value.trim()||humanName(mtLk.g);
+  S.mate={name:nm,sp:'human',look:mtLk,since:Date.now()};const bedOk=placeBed2();placeWardrobe2();spawnMate(true);puffAt({x:(M.tx+.5)*T,y:(M.ty+1)*T-6});save();sheetClosed();
   M.steps=[{t:'say',text:`今日からお世話になります！よろしくね、${S.name}`},{t:'wait',s:4},{t:'go',sc:'in',dyn:()=>randomTile('in','liv')}];
-  setTimeout(()=>queueSay(bedOk?`${nm}、いらっしゃい！ベッドと洋服ダンスも用意したよ`:`${nm}、いらっしゃい！…ベッドを置く場所、作らなきゃ`),1500);mtLk=null;$('mtName').value='';};
+  setTimeout(()=>queueSay(bedOk?`${nm}、いらっしゃい！ベッドと洋服ダンスも用意したよ`:`${nm}、いらっしゃい！…ベッドを置く場所、作らなきゃ`),1500);mtLk=null;mtAuto='';$('mtName').value='';};
 $('mtRenameB').onclick=()=>{const nm=$('mtRename').value.trim();if(!nm||!S.mate)return;S.mate.name=nm;save();renderMate();msay(`これからは「${nm}」って呼んでね`);};
 $('mtBye').onclick=()=>{if(!S.mate)return;if(!mtByeArm){mtByeArm=true;$('mtBye').textContent='本当にお別れする？（もう一度押す）';return;}
   const nm=S.mate.name;S.mate=null;M=null;S.owned=S.owned.filter(k=>k!=='bed2'&&k!=='wardrobe2');delete S.layout.bed2;delete S.layout.wardrobe2;refreshOcc();save();sheetClosed();queueSay(`${nm}、元気でね…さみしくなるな`);};
 $('awayOk').onclick=()=>{$('awayCard').hidden=true;};
-$('rnNew').onclick=()=>{$('rnName').value=newName(rnSel||S.species);};
+$('rnNew').onclick=()=>{$('rnName').value=S.species==='human'?humanName((S.look||{}).g):newName(S.species);};
 $('rnSave').onclick=()=>{const nm=$('rnName').value.trim()||S.name,sp=rnSel||S.species,chName=nm!==S.name,chSp=sp!==S.species;if(!chName&&!chSp){$('sheet').hidden=true;return;}
   if(chSp&&sp==='human'&&!S.look){openLook(defaultLook(),lk=>{S.look=lk;$('rnSave').onclick();});return;}
   S.name=nm;if(chSp){S.species=sp;puff();}save();updateHUD();$('sheet').hidden=true;
@@ -4661,12 +4664,12 @@ function openLook(init,cb){lookDraft={...defaultLook(),...(init||{})};lookCb=cb;
 $('leM').onclick=()=>{if(lookDraft.g!=='m'){lookDraft.g='m';renderLook();}};$('leF').onclick=()=>{if(lookDraft.g!=='f'){lookDraft.g='f';renderLook();}};
 $('leBack').onclick=()=>{$('lookEd').hidden=true;lookCb=null;};
 $('leOk').onclick=()=>{$('lookEd').hidden=true;const cb=lookCb;lookCb=null;if(cb)cb({...lookDraft});};
-$('rnLook').onclick=()=>openLook(S.look||defaultLook(),lk=>{S.look=lk;S.species='human';rnSel='human';save();doron();say(pick(['見た目を変えてみた！どうかな？','イメチェン！似合う？']));$('sheet').hidden=true;});
+$('rnLook').onclick=()=>openLook(S.look||firstLook(),lk=>{S.look=lk;S.species='human';rnSel='human';save();doron();renderRename();say(pick(['見た目を変えてみた！どうかな？','イメチェン！似合う？']));$('sheet').hidden=true;});
 function simpleOutfitFull(){const o=simpleOutfit();o.shoes={k:'sneakers',c:'白'};return o;}
-$('bNewName').onclick=()=>{$('nameIn').value=autoName=newName(chosen);};let autoName='';
-$('bStart').onclick=()=>{if(chosen==='human'){openLook(lookDraft||defaultLook(),lk=>startNew(lk));return;}startNew(null);};
+$('bNewName').onclick=()=>{$('nameIn').value=autoName=humanName(setupLook?setupLook.g:'m');};let autoName='';
+$('bStart').onclick=()=>{chosen='human';if(!setupLook)setupLook=firstLook('m');startNew({...setupLook});setupLook=null;};
 function startNew(look){M=null;
-  const raw=$('nameIn').value.trim(),name=(!raw||(look&&raw===autoName&&!NAMES.human.b.slice(look.g==='f'?12:0,look.g==='f'?24:12).includes(raw)))?newName(chosen,look&&look.g):raw;
+  const raw=$('nameIn').value.trim(),name=(!raw||(look&&raw===autoName&&!HN[look.g==='f'?'f':'m'].includes(raw)))?humanName(look?look.g:'m'):raw;
   try{localStorage.removeItem(OLDKEY);}catch(e){}
   S={kitVer:2,species:chosen,name,born:Date.now(),owned:[],layout:{},lampOn:false,wish:[],needs:{hunger:75,energy:85,hygiene:80,bladder:80,fun:70},affinity:0,outfit:simpleOutfit(),trend:null,bathDay:'',lastSeen:Date.now(),dseedK:Math.floor(Math.random()*9973),dressN:Math.floor(Math.random()*50)};if(look)S.look=look;
   C.scene='in';place(IN_ENTRY.x,IN_ENTRY.y-1);refreshOcc();
